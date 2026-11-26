@@ -1,4 +1,4 @@
-/** Espelha internschat/srv/realtime/events.ts (contrato com o CAP). */
+/** Espelha resenhachat/srv/realtime/events.ts (contrato com o CAP). */
 
 export interface PresenceSnapshotPayload {
     OnlineUserIds: string[];

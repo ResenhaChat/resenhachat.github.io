@@ -1,11 +1,11 @@
 # Resenha (frontend)
 
 Chat em tempo real dos estagiários, em SAP UI5 (TypeScript, UI5 1.136+, OData V4, tema Horizon claro/escuro).
-O backend (SAP CAP) fica em `../internschat`.
+O backend (SAP CAP) fica em `../resenhachat`.
 
 ## Rodar local
 
-1. Suba o backend CAP em `http://localhost:4004` (em `../internschat`: `npm run watch`).
+1. Suba o backend CAP em `http://localhost:4004` (em `../resenhachat`: `npm run watch`).
 2. Neste repositório:
 
 ```bash
