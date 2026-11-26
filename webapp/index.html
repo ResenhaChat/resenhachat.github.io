@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="theme-color" content="#0070f2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="description" content="Resenha - o chat dos estagiarios">
+    <title>Resenha</title>
+    <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <script>
+        // Tema inicial (evita o "flash" claro): preferencia salva ou prefers-color-scheme.
+        (function () {
+            var mode = "auto";
+            try { mode = window.localStorage.getItem("resenha.theme") || "auto"; } catch (e) { mode = "auto"; }
+            var dark = mode === "dark" || (mode !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+            window["sap-ui-config"] = { theme: dark ? "sap_horizon_dark" : "sap_horizon" };
+        })();
+    </script>
+    <style>
+        html, body, body > div, #container, #container-uiarea {
+            height: 100%;
+        }
+        @supports (height: 100dvh) {
+            html, body, body > div, #container, #container-uiarea {
+                height: 100dvh;
+            }
+        }
+        html body {
+            box-sizing: border-box;
+            padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+        }
+        @supports (-webkit-touch-callout: none) {
+            input, textarea, select {
+                font-size: 16px !important;
+            }
+        }
+    </style>
+    <script
+        id="sap-ui-bootstrap"
+        src="https://openui5.hana.ondemand.com/resources/sap-ui-core.js"
+        data-sap-ui-resource-roots='{
+            "apps.dflc.resenha": "./"
+        }'
+        data-sap-ui-on-init="module:sap/ui/core/ComponentSupport"
+        data-sap-ui-compat-version="edge"
+        data-sap-ui-async="true"
+        data-sap-ui-frame-options="trusted"
+    ></script>
+</head>
+<body class="sapUiBody" id="content">
+    <div
+        data-sap-ui-component
+        data-name="apps.dflc.resenha"
+        data-id="container"
+        data-settings='{"id" : "apps.dflc.resenha"}'
+        data-handle-validation="true"
+    ></div>
+</body>
+</html>

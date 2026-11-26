@@ -1,0 +1,32 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+>
+    <Dialog id="profileDialog" title="{i18n>profileTitle}" contentWidth="26rem" stretch="{device>/system/phone}"
+        afterClose=".onAfterClose" class="rsProfileDialog">
+        <content>
+            <VBox class="rsProfileBody">
+                <HBox justifyContent="Center" class="rsProfileAvatar">
+                    <Avatar displaySize="XL" initials="{path: 'DisplayName', formatter: '.formatter.initials'}"
+                        backgroundColor="{path: 'ID', formatter: '.formatter.accent'}" />
+                </HBox>
+                <Label text="{i18n>fieldDisplayName}" labelFor="profileDisplayName" required="true" />
+                <Input id="profileDisplayName" value="{DisplayName}" maxLength="60" valueLiveUpdate="true"
+                    liveChange=".onNameChange" />
+                <Label text="{i18n>fieldAbout}" labelFor="profileAbout" class="sapUiSmallMarginTop" />
+                <TextArea id="profileAbout" value="{About}" rows="3" maxLength="200" showExceededText="true"
+                    placeholder="{i18n>fieldAboutPlaceholder}" width="100%" />
+                <Label text="{i18n>fieldUsername}" class="sapUiSmallMarginTop" />
+                <Text text="@{Username}" class="rsProfileReadonly" />
+                <Label text="{i18n>fieldEmail}" class="sapUiSmallMarginTop" />
+                <Text text="{Email}" class="rsProfileReadonly" />
+            </VBox>
+        </content>
+        <beginButton>
+            <Button id="profileSaveButton" text="{i18n>save}" type="Emphasized" press=".onSave" />
+        </beginButton>
+        <endButton>
+            <Button id="profileCancelButton" text="{i18n>cancel}" press=".onCancel" />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

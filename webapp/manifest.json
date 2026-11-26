@@ -1,0 +1,107 @@
+{
+  "_version": "1.76.0",
+  "sap.app": {
+    "id": "apps.dflc.resenha",
+    "type": "application",
+    "i18n": {
+      "bundleUrl": "i18n/i18n.properties",
+      "supportedLocales": ["", "en"],
+      "fallbackLocale": ""
+    },
+    "applicationVersion": {
+      "version": "1.0.0"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}"
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "favIcon": "img/favicon.svg"
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "rootView": {
+      "viewName": "apps.dflc.resenha.view.App",
+      "type": "XML",
+      "id": "app",
+      "async": true
+    },
+    "dependencies": {
+      "minUI5Version": "1.136.0",
+      "libs": {
+        "sap.m": {},
+        "sap.f": {},
+        "sap.ui.core": {},
+        "sap.ui.layout": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "apps.dflc.resenha.i18n.i18n",
+          "supportedLocales": ["", "en"],
+          "fallbackLocale": ""
+        }
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "transition": "fade",
+        "type": "View",
+        "viewType": "XML",
+        "path": "apps.dflc.resenha.view",
+        "async": true
+      },
+      "routes": [
+        {
+          "name": "login",
+          "pattern": "login",
+          "target": "login"
+        },
+        {
+          "name": "chat",
+          "pattern": "",
+          "target": "chat"
+        },
+        {
+          "name": "conversation",
+          "pattern": "c/{id}",
+          "target": "chat"
+        }
+      ],
+      "targets": {
+        "login": {
+          "id": "Login",
+          "name": "Login",
+          "level": 1
+        },
+        "chat": {
+          "id": "Chat",
+          "name": "Chat",
+          "level": 2
+        }
+      }
+    }
+  }
+}

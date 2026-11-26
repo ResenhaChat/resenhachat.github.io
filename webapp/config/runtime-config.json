@@ -1,0 +1,5 @@
+{
+  "chatService": "/service/Chat/",
+  "authBase": "/auth",
+  "wsUrl": ""
+}

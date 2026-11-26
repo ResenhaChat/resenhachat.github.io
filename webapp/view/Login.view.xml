@@ -1,0 +1,54 @@
+<mvc:View
+    controllerName="apps.dflc.resenha.controller.Login"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    displayBlock="true"
+>
+    <Page id="loginPage" showHeader="false" enableScrolling="true" class="rsAuthPage">
+        <VBox class="rsAuthWrap" alignItems="Center" justifyContent="Center">
+            <VBox id="authCard" class="rsAuthCard">
+                <VBox class="rsBrand" alignItems="Center">
+                    <HBox class="rsLogo" alignItems="Center" justifyContent="Center">
+                        <core:Icon src="sap-icon://discussion" class="rsLogoIcon" size="2rem" decorative="true" />
+                    </HBox>
+                    <Title text="{i18n>appName}" titleStyle="H2" class="rsBrandName" />
+                    <Text text="{i18n>appSlogan}" class="rsBrandSlogan" textAlign="Center" />
+                </VBox>
+
+                <SegmentedButton id="modeTabs" width="100%" selectedKey="{ui>/login/mode}" class="rsAuthTabs" selectionChange=".onModeChange">
+                    <items>
+                        <SegmentedButtonItem key="login" text="{i18n>authTabLogin}" />
+                        <SegmentedButtonItem key="register" text="{i18n>authTabRegister}" />
+                    </items>
+                </SegmentedButton>
+
+                <MessageStrip id="authError" type="Error" showIcon="true" class="rsAuthError"
+                    visible="{= !!${ui>/login/error} }" text="{ui>/login/error}" />
+
+                <VBox id="registerFields" visible="{= ${ui>/login/mode} === 'register' }">
+                    <Label text="{i18n>fieldDisplayName}" labelFor="displayNameInput" />
+                    <Input id="displayNameInput" value="{ui>/login/displayName}" valueLiveUpdate="true" maxLength="60"
+                        placeholder="{i18n>fieldDisplayName}" liveChange=".onFieldChange" submit=".onSubmit" class="rsAuthField" />
+                    <Label text="{i18n>fieldUsername}" labelFor="usernameInput" />
+                    <Input id="usernameInput" value="{ui>/login/username}" valueLiveUpdate="true" maxLength="30"
+                        placeholder="{i18n>fieldUsername}" liveChange=".onFieldChange" submit=".onSubmit" class="rsAuthField" />
+                    <Label text="{i18n>fieldEmail}" labelFor="emailInput" />
+                    <Input id="emailInput" value="{ui>/login/email}" valueLiveUpdate="true" type="Email" maxLength="120"
+                        placeholder="{i18n>fieldEmail}" liveChange=".onFieldChange" submit=".onSubmit" class="rsAuthField" />
+                </VBox>
+
+                <Label text="{i18n>fieldLogin}" labelFor="loginInput" visible="{= ${ui>/login/mode} === 'login' }" />
+                <Input id="loginInput" value="{ui>/login/login}" valueLiveUpdate="true" maxLength="120"
+                    visible="{= ${ui>/login/mode} === 'login' }" placeholder="{i18n>fieldLogin}"
+                    liveChange=".onFieldChange" submit=".onSubmit" class="rsAuthField" />
+                <Label text="{i18n>fieldPassword}" labelFor="passwordInput" />
+                <Input id="passwordInput" value="{ui>/login/password}" valueLiveUpdate="true" type="Password" maxLength="100"
+                    placeholder="{i18n>fieldPassword}" liveChange=".onFieldChange" submit=".onSubmit" class="rsAuthField" />
+
+                <Button id="submitButton" type="Emphasized" width="100%" class="rsAuthSubmit" press=".onSubmit"
+                    text="{= ${ui>/login/mode} === 'login' ? ${i18n>authSubmitLogin} : ${i18n>authSubmitRegister} }" />
+            </VBox>
+        </VBox>
+    </Page>
+</mvc:View>
