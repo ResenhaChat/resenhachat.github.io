@@ -8,7 +8,7 @@ html:root {
     --rs-brand: #0A6CF5;
     --rs-brand-2: #38BDF8;
     --rs-brand-strong: #0857C9;
-    --rs-gradient: linear-gradient(135deg, #0A6CF5 0%, #2E8BFF 55%, #38BDF8 100%);
+    --rs-gradient: linear-gradient(135deg, #0857C9 0%, #0A6CF5 55%, #1679E0 100%);
     --rs-gradient-strong: linear-gradient(135deg, var(--rs-brand-strong) 0%, var(--rs-brand) 100%);
     --rs-focus-ring: 0 0 0 3px color-mix(in srgb, var(--rs-brand) 25%, transparent);
     --rs-radius-sm: 10px;
@@ -40,7 +40,7 @@ html.rsDark:root {
     --rs-brand: #3B8BFF;
     --rs-brand-2: #5CCBFF;
     --rs-brand-strong: #2E7BF0;
-    --rs-gradient: linear-gradient(135deg, #2E7BF0 0%, #3B8BFF 55%, #38BDF8 100%);
+    --rs-gradient: linear-gradient(135deg, #1F5FD1 0%, #2A6FE6 55%, #2F78DC 100%);
     --rs-bg: #0E1014;
     --rs-surface: #15181E;
     --rs-surface-2: #1C2028;
@@ -285,6 +285,10 @@ body {
 
 .rsAuthField.sapMInputBase {
     margin-bottom: 0.625rem;
+}
+
+.sapMInputBase + .sapMLabel {
+    margin-top: 0.875rem;
 }
 
 .rsAuthField .sapMInputBaseContentWrapper {
