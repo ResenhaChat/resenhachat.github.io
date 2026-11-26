@@ -5,9 +5,12 @@
 :root,
 html:root {
     --rs-font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-    --rs-brand: #6C5CE7;
-    --rs-brand-2: #FF7A59;
-    --rs-gradient: linear-gradient(135deg, #6C5CE7 0%, #A55EEA 55%, #FF7A59 100%);
+    --rs-brand: #0A6CF5;
+    --rs-brand-2: #38BDF8;
+    --rs-brand-strong: #0857C9;
+    --rs-gradient: linear-gradient(135deg, #0A6CF5 0%, #2E8BFF 55%, #38BDF8 100%);
+    --rs-gradient-strong: linear-gradient(135deg, var(--rs-brand-strong) 0%, var(--rs-brand) 100%);
+    --rs-focus-ring: 0 0 0 3px color-mix(in srgb, var(--rs-brand) 25%, transparent);
     --rs-radius-sm: 10px;
     --rs-radius: 16px;
     --rs-radius-lg: 22px;
@@ -21,8 +24,8 @@ html:root {
     --rs-online: #22C55E;
     --rs-shadow: 0 8px 24px rgba(20, 22, 28, .08);
     --rs-bubble-other: #FFFFFF;
-    --rs-pal-1: #6C5CE7;
-    --rs-pal-2: #FF7A59;
+    --rs-pal-1: var(--rs-brand);
+    --rs-pal-2: var(--rs-brand-2);
     --rs-pal-3: #14B8A6;
     --rs-pal-4: #E64980;
     --rs-pal-5: #D9730D;
@@ -34,6 +37,10 @@ html:root {
 }
 
 html.rsDark:root {
+    --rs-brand: #3B8BFF;
+    --rs-brand-2: #5CCBFF;
+    --rs-brand-strong: #2E7BF0;
+    --rs-gradient: linear-gradient(135deg, #2E7BF0 0%, #3B8BFF 55%, #38BDF8 100%);
     --rs-bg: #0E1014;
     --rs-surface: #15181E;
     --rs-surface-2: #1C2028;
@@ -85,6 +92,35 @@ html:root {
     --sapAccentBackgroundColor9: var(--rs-pal-9);
     --sapAccentColor10: var(--rs-pal-10);
     --sapAccentBackgroundColor10: var(--rs-pal-10);
+    --sapContent_FocusColor: var(--rs-brand);
+    --sapField_BackgroundStyle: none;
+    --sapField_Focus_BorderColor: var(--rs-brand);
+    --sapField_Focus_Background: var(--rs-surface-2);
+    --sapField_Hover_Background: var(--rs-surface-2);
+    --sapField_Hover_BackgroundStyle: none;
+    --sapField_Hover_Shadow: none;
+    --sapButton_Hover_Background: var(--rs-surface-2);
+    --sapButton_Hover_BorderColor: transparent;
+    --sapButton_Hover_TextColor: var(--rs-text);
+    --sapButton_Active_Background: var(--rs-surface-2);
+    --sapButton_Active_BorderColor: transparent;
+    --sapButton_Active_TextColor: var(--rs-text);
+    --sapButton_Lite_Hover_Background: var(--rs-surface-2);
+    --sapButton_Lite_Hover_BorderColor: transparent;
+    --sapButton_Lite_Active_Background: var(--rs-surface-2);
+    --sapButton_Lite_Active_BorderColor: transparent;
+    --sapButton_Emphasized_BorderColor: var(--rs-brand);
+    --sapButton_Emphasized_Hover_Background: var(--rs-brand-strong);
+    --sapButton_Emphasized_Hover_BorderColor: var(--rs-brand-strong);
+    --sapButton_Emphasized_Hover_TextColor: var(--rs-on-brand);
+    --sapButton_Emphasized_Active_Background: var(--rs-brand-strong);
+    --sapButton_Emphasized_Active_BorderColor: var(--rs-brand-strong);
+    --sapButton_Emphasized_Active_TextColor: var(--rs-on-brand);
+    --sapButton_Selected_Background: color-mix(in srgb, var(--rs-brand) 14%, transparent);
+    --sapButton_Selected_BorderColor: transparent;
+    --sapButton_Selected_TextColor: var(--rs-brand);
+    --sapList_Hover_Background: var(--rs-surface-2);
+    --sapList_Active_Background: color-mix(in srgb, var(--rs-brand) 20%, transparent);
 }
 
 /* ---------- Base ---------- */
@@ -154,24 +190,64 @@ body {
 }
 
 /* ---------- Botoes e campos reutilizados ---------- */
+/* Fundo, raio, altura e sombra ficam no .sapMBtnInner (o que aparece); o .sapMBtn externo so ocupa o espaco.
+   A altura vem de --rs-btn-h, definida por variante. */
+.rsRoundBtn.sapMBtn,
+.rsGradientBtn.sapMBtn,
+.rsAuthSubmit.sapMBtn,
+.rsGhostBtn.sapMBtn,
+.rsSegBtn.sapMBtn,
+.rsSendButton.sapMBtn {
+    height: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.rsRoundBtn.sapMBtn,
+.rsGhostBtn.sapMBtn,
+.rsSegBtn.sapMBtn {
+    --rs-btn-h: 2.5rem;
+}
+
+.rsGradientBtn.sapMBtn,
+.rsAuthSubmit.sapMBtn,
+.rsSendButton.sapMBtn {
+    --rs-btn-h: 2.75rem;
+}
+
+.rsRoundBtn.sapMBtn .sapMBtnInner,
+.rsGradientBtn.sapMBtn .sapMBtnInner,
+.rsAuthSubmit.sapMBtn .sapMBtnInner,
+.rsGhostBtn.sapMBtn .sapMBtnInner,
+.rsSegBtn.sapMBtn .sapMBtnInner,
+.rsSendButton.sapMBtn .sapMBtnInner {
+    display: flex;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    height: var(--rs-btn-h);
+    padding: 0 1rem;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    box-shadow: none;
+    transition: background-color 150ms ease, background-image 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
 .rsRoundBtn.sapMBtn {
     flex: none;
     width: 2.5rem;
     min-width: 2.5rem;
-    height: 2.5rem;
-    padding: 0;
-    border: 0;
+    border-radius: 50%;
 }
 
 .rsRoundBtn.sapMBtn .sapMBtnInner {
     width: 100%;
-    height: 100%;
     padding: 0;
-    border: 0;
     border-radius: 50%;
-    background: transparent;
     color: var(--rs-text-2);
-    transition: background 150ms ease;
 }
 
 .rsRoundBtn.sapMBtn:hover .sapMBtnInner {
@@ -180,30 +256,31 @@ body {
 
 .rsGradientBtn.sapMBtn .sapMBtnInner,
 .rsAuthSubmit.sapMBtn .sapMBtnInner {
-    border: 0;
-    border-radius: 12px;
     background-image: var(--rs-gradient);
     color: var(--rs-on-brand);
     font-weight: 600;
     box-shadow: 0 6px 16px color-mix(in srgb, var(--rs-brand) 30%, transparent);
-    transition: transform 150ms ease, box-shadow 150ms ease;
 }
 
 .rsGradientBtn.sapMBtn:hover .sapMBtnInner,
 .rsAuthSubmit.sapMBtn:hover .sapMBtnInner {
+    background-image: var(--rs-gradient-strong);
     transform: translateY(-1px);
     box-shadow: 0 10px 22px color-mix(in srgb, var(--rs-brand) 40%, transparent);
 }
 
 .rsGhostBtn.sapMBtn .sapMBtnInner {
-    border: 0;
-    border-radius: 12px;
-    background: transparent;
     color: var(--rs-text-2);
 }
 
 .rsGhostBtn.sapMBtn:hover .sapMBtnInner {
     background: var(--rs-surface-2);
+}
+
+/* Menu do usuario: o hover do Horizon traz cinza e texto fixos */
+.sapMMenu .sapMMenuItem:hover {
+    background-color: var(--rs-surface-2);
+    color: var(--rs-text);
 }
 
 .rsAuthField.sapMInputBase {
@@ -227,8 +304,14 @@ body {
     font-size: 0.9375rem;
 }
 
-.rsAuthField.sapMInputBase:focus-within .sapMInputBaseContentWrapper {
-    box-shadow: 0 0 0 2px var(--rs-brand);
+/* Campos: anel proprio no foco, sem a moldura e a barra inferior do Horizon */
+.sapMInputBase.sapMFocus .sapMInputBaseContentWrapper {
+    border-color: var(--rs-brand);
+    box-shadow: var(--rs-focus-ring);
+}
+
+.sapMInputBase.sapMFocus .sapMInputBaseContentWrapper::before {
+    display: none;
 }
 
 .rsAuthField.sapMInputBaseError .sapMInputBaseContentWrapper {
@@ -435,7 +518,6 @@ body {
 }
 
 .rsSegBtn.sapMBtn .sapMBtnInner {
-    height: 2.5rem;
     border: 0;
     border-radius: 10px;
     background: transparent;
@@ -461,10 +543,6 @@ body {
 
 .rsAuthSubmit.sapMBtn {
     margin-top: 0.5rem;
-}
-
-.rsAuthSubmit.sapMBtn .sapMBtnInner {
-    height: 3rem;
 }
 
 /* ---------- Chat: estrutura ---------- */
@@ -567,7 +645,7 @@ body {
 }
 
 .rsSearch:focus-within {
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--rs-brand) 45%, transparent);
+    box-shadow: var(--rs-focus-ring);
 }
 
 .rsSearchIcon {
@@ -1013,7 +1091,7 @@ body {
 }
 
 .rsComposer:focus-within {
-    box-shadow: var(--rs-shadow), 0 0 0 2px color-mix(in srgb, var(--rs-brand) 45%, transparent);
+    box-shadow: var(--rs-shadow), var(--rs-focus-ring);
 }
 
 .rsComposer .rsComposerInput.sapMTextArea {
@@ -1044,19 +1122,11 @@ body {
     flex: none;
     width: 2.75rem;
     min-width: 2.75rem;
-    height: 2.75rem;
-    padding: 0;
-    border: 0;
 }
 
 .rsSendButton.sapMBtn .sapMBtnInner {
-    display: flex;
     width: 100%;
-    height: 100%;
-    align-items: center;
-    justify-content: center;
     padding: 0;
-    border: 0;
     border-radius: 50%;
     background-image: var(--rs-gradient);
     color: var(--rs-on-brand);
@@ -1167,7 +1237,7 @@ body {
     .rsRoundBtn.sapMBtn {
         width: 2.75rem;
         min-width: 2.75rem;
-        height: 2.75rem;
+        --rs-btn-h: 2.75rem;
     }
 
     .rsChatPage .rsSidebar,
@@ -1378,8 +1448,11 @@ body {
     color: var(--rs-text);
 }
 
+.rsPushBannerBtn.sapMBtn {
+    --rs-btn-h: 2rem;
+}
+
 .rsPushBannerBtn.sapMBtn .sapMBtnInner {
-    min-height: 2rem;
     padding: 0 0.75rem;
     font-size: 0.8125rem;
 }
@@ -1449,4 +1522,9 @@ body {
 /* Status online no subtitulo da conversa */
 .rsSubtitle.sapMText[data-rs-state="online"] {
     color: var(--rs-online);
+}
+
+/* ---------- Foco de teclado nos botoes: anel proprio ---------- */
+.sapMBtn:focus-visible .sapMBtnInner {
+    box-shadow: var(--rs-focus-ring);
 }
