@@ -1,7 +1,7 @@
 sap.ui.define([], function () {
   "use strict";
 
-  /** Espelha internschat/srv/realtime/events.ts (contrato com o CAP). */
+  /** Espelha resenhachat/srv/realtime/events.ts (contrato com o CAP). */
 
   /** servidor -> cliente */
 
