@@ -1,0 +1,2 @@
+sap.ui.define([],function(){"use strict";const e=["presence.snapshot","presence.changed","message.created","conversation.read","typing","ping","pong"];function n(n){return typeof n==="string"&&e.includes(n)}var r={__esModule:true};r.SERVER_EVENT_TYPES=e;r.isServerEventType=n;return r});
+//# sourceMappingURL=RealtimeEvents.js.map

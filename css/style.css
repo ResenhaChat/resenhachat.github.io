@@ -1,0 +1,1452 @@
+/* Resenha - identidade propria. Cores sempre por tokens --rs-* (claro em :root, escuro em html.rsDark).
+   As variaveis --sap* do UI5 sao mapeadas para esses tokens em html:root, para dialogs e menus (anexados ao body) herdarem. */
+
+/* ---------- Tokens ---------- */
+:root,
+html:root {
+    --rs-font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --rs-brand: #6C5CE7;
+    --rs-brand-2: #FF7A59;
+    --rs-gradient: linear-gradient(135deg, #6C5CE7 0%, #A55EEA 55%, #FF7A59 100%);
+    --rs-radius-sm: 10px;
+    --rs-radius: 16px;
+    --rs-radius-lg: 22px;
+    --rs-on-brand: #FFFFFF;
+    --rs-bg: #F4F5FA;
+    --rs-surface: #FFFFFF;
+    --rs-surface-2: #EEF0F6;
+    --rs-text: #14161C;
+    --rs-text-2: #5B6170;
+    --rs-border: rgba(20, 22, 28, .08);
+    --rs-online: #22C55E;
+    --rs-shadow: 0 8px 24px rgba(20, 22, 28, .08);
+    --rs-bubble-other: #FFFFFF;
+    --rs-pal-1: #6C5CE7;
+    --rs-pal-2: #FF7A59;
+    --rs-pal-3: #14B8A6;
+    --rs-pal-4: #E64980;
+    --rs-pal-5: #D9730D;
+    --rs-pal-6: #20A36B;
+    --rs-pal-7: #3B82F6;
+    --rs-pal-8: #9C5FE0;
+    --rs-pal-9: #E5484D;
+    --rs-pal-10: #7A9E12;
+}
+
+html.rsDark:root {
+    --rs-bg: #0E1014;
+    --rs-surface: #15181E;
+    --rs-surface-2: #1C2028;
+    --rs-text: #ECEEF3;
+    --rs-text-2: #9AA1AF;
+    --rs-border: rgba(255, 255, 255, .07);
+    --rs-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+    --rs-bubble-other: #1E222B;
+}
+
+html:root {
+    --sapFontFamily: var(--rs-font);
+    --sapFontHeaderFamily: var(--rs-font);
+    --sapBrandColor: var(--rs-brand);
+    --sapHighlightColor: var(--rs-brand);
+    --sapButton_Emphasized_Background: var(--rs-brand);
+    --sapButton_Emphasized_TextColor: var(--rs-on-brand);
+    --sapButton_BorderCornerRadius: 12px;
+    --sapField_BorderCornerRadius: 12px;
+    --sapField_Background: var(--rs-surface-2);
+    --sapField_BorderColor: transparent;
+    --sapField_Hover_BorderColor: transparent;
+    --sapBackgroundColor: var(--rs-bg);
+    --sapList_Background: var(--rs-surface);
+    --sapList_SelectionBackgroundColor: color-mix(in srgb, var(--rs-brand) 14%, transparent);
+    --sapGroup_ContentBackground: var(--rs-surface);
+    --sapPageHeader_Background: var(--rs-surface);
+    --sapGroup_TitleBorderColor: var(--rs-border);
+    --sapTextColor: var(--rs-text);
+    --sapContent_LabelColor: var(--rs-text-2);
+    --sapToast_BorderCornerRadius: 12px;
+    --sapAccentColor1: var(--rs-pal-1);
+    --sapAccentBackgroundColor1: var(--rs-pal-1);
+    --sapAccentColor2: var(--rs-pal-2);
+    --sapAccentBackgroundColor2: var(--rs-pal-2);
+    --sapAccentColor3: var(--rs-pal-3);
+    --sapAccentBackgroundColor3: var(--rs-pal-3);
+    --sapAccentColor4: var(--rs-pal-4);
+    --sapAccentBackgroundColor4: var(--rs-pal-4);
+    --sapAccentColor5: var(--rs-pal-5);
+    --sapAccentBackgroundColor5: var(--rs-pal-5);
+    --sapAccentColor6: var(--rs-pal-6);
+    --sapAccentBackgroundColor6: var(--rs-pal-6);
+    --sapAccentColor7: var(--rs-pal-7);
+    --sapAccentBackgroundColor7: var(--rs-pal-7);
+    --sapAccentColor8: var(--rs-pal-8);
+    --sapAccentBackgroundColor8: var(--rs-pal-8);
+    --sapAccentColor9: var(--rs-pal-9);
+    --sapAccentBackgroundColor9: var(--rs-pal-9);
+    --sapAccentColor10: var(--rs-pal-10);
+    --sapAccentBackgroundColor10: var(--rs-pal-10);
+}
+
+/* ---------- Base ---------- */
+html,
+body {
+    background: var(--rs-bg);
+    color: var(--rs-text);
+    font-family: var(--rs-font);
+    -webkit-font-smoothing: antialiased;
+}
+
+.rsApp,
+.rsApp > div {
+    height: 100%;
+}
+
+:focus-visible {
+    outline: 2px solid var(--rs-brand);
+    outline-offset: 2px;
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--rs-text-2) 35%, transparent) transparent;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--rs-text-2) 35%, transparent);
+    background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sapMMessageToast {
+    border-radius: 12px;
+    box-shadow: var(--rs-shadow);
+}
+
+/* ---------- Animacoes ---------- */
+@keyframes rsIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes rsBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-3px); opacity: 1; }
+}
+
+@keyframes rsFloat {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to { transform: translate3d(4%, -5%, 0) scale(1.08); }
+}
+
+@keyframes rsEnable {
+    from { transform: scale(0.8); }
+    to { transform: scale(1); }
+}
+
+/* ---------- Botoes e campos reutilizados ---------- */
+.rsRoundBtn.sapMBtn {
+    flex: none;
+    width: 2.5rem;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: 0;
+}
+
+.rsRoundBtn.sapMBtn .sapMBtnInner {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--rs-text-2);
+    transition: background 150ms ease;
+}
+
+.rsRoundBtn.sapMBtn:hover .sapMBtnInner {
+    background: var(--rs-surface-2);
+}
+
+.rsGradientBtn.sapMBtn .sapMBtnInner,
+.rsAuthSubmit.sapMBtn .sapMBtnInner {
+    border: 0;
+    border-radius: 12px;
+    background-image: var(--rs-gradient);
+    color: var(--rs-on-brand);
+    font-weight: 600;
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--rs-brand) 30%, transparent);
+    transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.rsGradientBtn.sapMBtn:hover .sapMBtnInner,
+.rsAuthSubmit.sapMBtn:hover .sapMBtnInner {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px color-mix(in srgb, var(--rs-brand) 40%, transparent);
+}
+
+.rsGhostBtn.sapMBtn .sapMBtnInner {
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--rs-text-2);
+}
+
+.rsGhostBtn.sapMBtn:hover .sapMBtnInner {
+    background: var(--rs-surface-2);
+}
+
+.rsAuthField.sapMInputBase {
+    margin-bottom: 0.625rem;
+}
+
+.rsAuthField .sapMInputBaseContentWrapper {
+    height: 3rem;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: var(--rs-surface-2);
+    transition: box-shadow 150ms ease;
+}
+
+.rsAuthField .sapMInputBaseInner {
+    height: 100%;
+    padding: 0 0.875rem;
+    background: transparent;
+    color: var(--rs-text);
+    font-size: 0.9375rem;
+}
+
+.rsAuthField.sapMInputBase:focus-within .sapMInputBaseContentWrapper {
+    box-shadow: 0 0 0 2px var(--rs-brand);
+}
+
+.rsAuthField.sapMInputBaseError .sapMInputBaseContentWrapper {
+    box-shadow: 0 0 0 2px var(--sapErrorColor);
+}
+
+.rsAuthField .sapMInputBaseContentWrapper::after {
+    display: none;
+}
+
+/* Anel de gradiente (avatar em destaque) */
+.rsRing {
+    position: relative;
+    display: flex;
+    flex: none;
+    padding: 2px;
+    box-sizing: border-box;
+    border-radius: 50%;
+    background: var(--rs-gradient);
+}
+
+.rsRing .sapFAvatar {
+    box-shadow: 0 0 0 2px var(--rs-surface);
+}
+
+/* ---------- Login ---------- */
+.rsAuthPage {
+    background: var(--rs-bg);
+}
+
+.rsAuthShell {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    min-height: 100dvh;
+    box-sizing: border-box;
+}
+
+.rsHero {
+    position: relative;
+    display: flex;
+    flex: 0 0 55%;
+    align-items: center;
+    min-width: 0;
+    overflow: hidden;
+    background: var(--rs-gradient);
+}
+
+.rsBlob.sapMText {
+    position: absolute;
+    display: block;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.55;
+    pointer-events: none;
+    animation: rsFloat 16s ease-in-out infinite alternate;
+}
+
+.rsBlobA.sapMText {
+    top: -90px;
+    left: -70px;
+    width: 340px;
+    height: 340px;
+    background: var(--rs-brand-2);
+}
+
+.rsBlobB.sapMText {
+    top: 30%;
+    right: -60px;
+    width: 280px;
+    height: 280px;
+    background: var(--rs-brand);
+    animation-duration: 20s;
+    animation-delay: -6s;
+}
+
+.rsBlobC.sapMText {
+    bottom: -100px;
+    left: 25%;
+    width: 240px;
+    height: 240px;
+    background: var(--rs-brand-2);
+    animation-duration: 24s;
+    animation-delay: -12s;
+}
+
+.rsHeroContent {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 620px;
+    padding: 3rem 4rem;
+    box-sizing: border-box;
+}
+
+.rsHeroLogo {
+    width: 4.5rem;
+    height: 4.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.sapMTitle.rsHeroTitle {
+    margin: 0;
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--rs-on-brand);
+}
+
+.sapMText.rsHeroSlogan {
+    margin-top: 0.75rem;
+    font-size: 1.125rem;
+    color: var(--rs-on-brand);
+    opacity: 0.85;
+}
+
+.rsPreview {
+    display: flex;
+    flex-direction: column;
+    margin-top: 2.5rem;
+}
+
+.rsPreviewRow {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.rsPreviewRowMine {
+    justify-content: flex-end;
+}
+
+.sapMText.rsPreviewBubble {
+    display: inline-block;
+    max-width: 280px;
+    padding: 0.625rem 0.875rem;
+    box-sizing: border-box;
+    border-radius: 18px;
+    font-size: 0.9375rem;
+    line-height: 1.35;
+}
+
+.sapMText.rsPreviewOther {
+    background: color-mix(in srgb, var(--rs-on-brand) 18%, transparent);
+    color: var(--rs-on-brand);
+    border-bottom-left-radius: 6px;
+}
+
+.sapMText.rsPreviewMine {
+    background: var(--rs-on-brand);
+    color: var(--rs-brand);
+    border-bottom-right-radius: 6px;
+}
+
+.rsAuthPanel {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
+.rsAuthCard {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 380px;
+    animation: rsIn 0.3s ease-out;
+}
+
+.sapMTitle.rsAuthTitle {
+    margin: 0 0 1.25rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--rs-text);
+}
+
+.rsAuthCard .sapMLabel,
+.rsProfileBody .sapMLabel {
+    margin-bottom: 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--rs-text-2);
+}
+
+/* Segmentado em pilulas (entrar / criar conta) */
+.rsSeg {
+    box-sizing: border-box;
+    display: flex;
+    gap: 4px;
+    margin-bottom: 1.25rem;
+    padding: 4px;
+    border-radius: 14px;
+    background: var(--rs-surface-2);
+}
+
+.rsSeg .rsSegBtn.sapMBtn {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.rsSegBtn.sapMBtn .sapMBtnInner {
+    height: 2.5rem;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    box-shadow: none;
+    color: var(--rs-text-2);
+    font-weight: 600;
+    transition: background 150ms ease, color 150ms ease;
+}
+
+.rsSegBtn.sapMBtn:not([data-rs-active="true"]):hover .sapMBtnInner {
+    background: color-mix(in srgb, var(--rs-text) 5%, transparent);
+}
+
+.rsSegBtn.sapMBtn[data-rs-active="true"] .sapMBtnInner {
+    background: var(--rs-surface);
+    color: var(--rs-text);
+    box-shadow: var(--rs-shadow);
+}
+
+.rsAuthError {
+    margin-bottom: 0.75rem;
+}
+
+.rsAuthSubmit.sapMBtn {
+    margin-top: 0.5rem;
+}
+
+.rsAuthSubmit.sapMBtn .sapMBtnInner {
+    height: 3rem;
+}
+
+/* ---------- Chat: estrutura ---------- */
+.rsChatPage {
+    position: relative;
+    display: flex;
+    overflow: hidden;
+    height: 100%;
+    background: var(--rs-bg);
+}
+
+.rsSidebar {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    width: 360px;
+    min-height: 0;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    background: var(--rs-surface);
+    border-right: 1px solid var(--rs-border);
+}
+
+.rsMain {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    position: relative;
+    background: var(--rs-bg);
+}
+
+.rsColumn {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.rsScroll {
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+/* ---------- Sidebar: cabecalho, busca, online ---------- */
+.rsSideHead {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    padding: 0 1rem;
+    box-sizing: border-box;
+}
+
+.rsBrand {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+}
+
+.rsBrandLogo {
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+}
+
+.sapMText.rsBrandName {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--rs-text);
+}
+
+.rsSideActions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rsMeAvatar.sapFAvatar {
+    cursor: pointer;
+    box-shadow: 0 0 0 2px var(--rs-surface-2);
+}
+
+.rsSearch {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    margin: 0 1rem 0.75rem;
+    padding: 0 1rem;
+    box-sizing: border-box;
+    border-radius: 999px;
+    background: var(--rs-surface-2);
+    transition: box-shadow 150ms ease;
+}
+
+.rsSearch:focus-within {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--rs-brand) 45%, transparent);
+}
+
+.rsSearchIcon {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    color: var(--rs-text-2);
+}
+
+.rsSearchInput.sapMInputBase {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.rsSearchInput .sapMInputBaseContentWrapper {
+    border: 0;
+    background: transparent;
+}
+
+.rsSearchInput .sapMInputBaseInner {
+    height: 2.5rem;
+    padding: 0;
+    background: transparent;
+    font-size: 0.9375rem;
+    color: var(--rs-text);
+}
+
+.rsOnline {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0 1rem 0.75rem;
+    box-sizing: border-box;
+}
+
+.sapMText.rsSectionLabel {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--rs-text-2);
+}
+
+.rsOnlineList {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.25rem 0.25rem 0.25rem 0;
+    box-sizing: border-box;
+}
+
+.rsOnlineItem {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    width: 56px;
+}
+
+.rsOnlineItem .rsRing::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 0.75rem;
+    height: 0.75rem;
+    box-sizing: border-box;
+    border-radius: 50%;
+    background: var(--rs-online);
+    border: 2px solid var(--rs-surface);
+}
+
+.sapMText.rsOnlineName {
+    max-width: 56px;
+    overflow: hidden;
+    font-size: 0.75rem;
+    text-align: center;
+    color: var(--rs-text);
+}
+
+/* ---------- Lista de conversas ---------- */
+.rsConvList {
+    background: transparent;
+}
+
+.rsConvItem.sapMLIB {
+    position: relative;
+    margin: 4px 8px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--rs-radius);
+    background: transparent;
+}
+
+.rsConvItem.sapMLIB:hover {
+    background: var(--rs-surface-2);
+}
+
+.rsConvItem.sapMLIB.sapMLIBSelected,
+.rsConvItem.sapMLIB.sapMLIBSelected:hover {
+    background: color-mix(in srgb, var(--rs-brand) 14%, transparent);
+}
+
+.rsConvItem.sapMLIB.sapMLIBSelected::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    bottom: 14px;
+    left: 0;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--rs-gradient);
+}
+
+.rsConvRow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 72px;
+    padding: 0 0.75rem;
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.rsConvAvatar.sapFAvatar {
+    flex: none;
+}
+
+.rsConvItem[data-rs-kind="General"] .rsConvAvatar.sapFAvatar {
+    background-image: var(--rs-gradient);
+}
+
+.rsConvItem[data-rs-kind="Group"] .rsConvAvatar.sapFAvatar,
+.rsConvItem[data-rs-kind="Channel"] .rsConvAvatar.sapFAvatar {
+    background-image: linear-gradient(135deg, var(--rs-brand-2), var(--rs-brand));
+}
+
+.rsConvBody {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+}
+
+.rsConvBody > * {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.sapMText.rsConvName {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--rs-text);
+}
+
+.sapMText.rsConvTime {
+    flex: none;
+    font-size: 0.75rem;
+    color: var(--rs-text-2);
+}
+
+.sapMText.rsConvPreview {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.8125rem;
+    color: var(--rs-text-2);
+}
+
+.rsTypingLine {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    min-width: 0;
+    font-size: 0.8125rem;
+    font-style: italic;
+    color: var(--rs-brand);
+}
+
+.rsTypingLine .sapMText {
+    color: inherit;
+    font-style: italic;
+}
+
+.rsDot {
+    display: inline-block !important;
+    width: 4px;
+    height: 4px;
+    margin-left: 3px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: rsBounce 1.2s infinite ease-in-out;
+}
+
+.rsDot + .rsDot { animation-delay: 0.15s; }
+.rsDot + .rsDot + .rsDot { animation-delay: 0.3s; }
+
+.sapMText.rsBadge {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    margin-left: 0.5rem;
+    padding: 0 0.4375rem;
+    box-sizing: border-box;
+    border-radius: 999px;
+    background: var(--rs-gradient);
+    color: var(--rs-on-brand);
+    font-size: 0.6875rem;
+    font-weight: 700;
+}
+
+/* ---------- Cabecalho da conversa (vidro) ---------- */
+.rsChatColumn {
+    flex: 1 1 auto;
+}
+
+.rsChatHeader {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.75rem;
+    height: 64px;
+    padding: 0 1rem;
+    box-sizing: border-box;
+    background: color-mix(in srgb, var(--rs-surface) 75%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--rs-border);
+}
+
+.rsChatAvatar.sapFAvatar {
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+.rsBackBtn.sapMBtn {
+    display: none;
+}
+
+.rsChatTitle {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.sapMText.rsChatName {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--rs-text);
+}
+
+.sapMText.rsSubtitle,
+.rsSubtitle {
+    font-size: 0.75rem;
+    color: var(--rs-text-2);
+}
+
+.rsChatTitle .rsTypingLine.rsSubtitle {
+    color: var(--rs-brand);
+}
+
+/* ---------- Mensagens ---------- */
+.rsMessageScroll {
+    background-color: var(--rs-bg);
+    background-image: radial-gradient(color-mix(in srgb, var(--rs-text) 7%, transparent) 1px, transparent 1px);
+    background-size: 22px 22px;
+}
+
+.rsMessageList.sapMList {
+    box-sizing: border-box;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 0.5rem 0 1rem;
+}
+
+.rsMsgItem.sapMLIB {
+    padding: 0 1rem;
+    border: 0;
+    background: transparent;
+}
+
+.rsMsgItem.sapMLIB:not(.rsGrouped) {
+    padding-top: 0.75rem;
+}
+
+.rsMsgItem.sapMLIB.rsGrouped {
+    padding-top: 2px;
+}
+
+.sapMText.rsDaySep {
+    display: block;
+    align-self: center;
+    margin: 0.5rem 0 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--rs-surface) 80%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: var(--rs-shadow);
+    color: var(--rs-text-2);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.rsRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.rsMsgItem[data-rs-mine="true"] .rsRow {
+    flex-direction: row-reverse;
+}
+
+.rsAvatarWrap {
+    position: relative;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+}
+
+.sapMText.rsOnlineDot {
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    width: 0.625rem;
+    height: 0.625rem;
+    box-sizing: border-box;
+    border: 2px solid var(--rs-bg);
+    border-radius: 50%;
+    background: var(--rs-online);
+}
+
+.rsMsgItem[data-rs-mine="true"] .rsAvatarWrap,
+.rsMsgItem[data-rs-mine="true"] .rsSender,
+.rsMsgItem.rsGrouped .rsSender {
+    display: none;
+}
+
+.rsMsgItem.rsGrouped .rsAvatarWrap {
+    visibility: hidden;
+}
+
+.rsBubble {
+    display: flex;
+    flex-direction: column;
+    max-width: min(75%, 34rem);
+    min-width: 0;
+    padding: 0.5rem 0.75rem 0.375rem;
+    box-sizing: border-box;
+    border-radius: 18px;
+    background: var(--rs-bubble-other);
+    color: var(--rs-text);
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--rs-text) 10%, transparent);
+}
+
+.rsMsgItem[data-rs-mine="true"] .rsBubble {
+    background: var(--rs-gradient);
+    color: var(--rs-on-brand);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--rs-brand) 25%, transparent);
+}
+
+/* Grupo de mensagens do mesmo autor: o canto do lado do autor fica com 6px */
+.rsMsgItem.rsGrouped[data-rs-mine="false"] .rsBubble {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+
+.rsMsgItem.rsGrouped[data-rs-mine="true"] .rsBubble {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+.rsMsgItem.rsNew .rsBubble {
+    animation: rsIn 0.18s ease-out;
+}
+
+.sapMText.rsSender {
+    margin-bottom: 0.0625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.rsMsgItem.rsAccent1 .rsSender { color: var(--sapAccentColor1); }
+.rsMsgItem.rsAccent2 .rsSender { color: var(--sapAccentColor2); }
+.rsMsgItem.rsAccent3 .rsSender { color: var(--sapAccentColor3); }
+.rsMsgItem.rsAccent4 .rsSender { color: var(--sapAccentColor4); }
+.rsMsgItem.rsAccent5 .rsSender { color: var(--sapAccentColor5); }
+.rsMsgItem.rsAccent6 .rsSender { color: var(--sapAccentColor6); }
+.rsMsgItem.rsAccent7 .rsSender { color: var(--sapAccentColor7); }
+.rsMsgItem.rsAccent8 .rsSender { color: var(--sapAccentColor8); }
+.rsMsgItem.rsAccent9 .rsSender { color: var(--sapAccentColor9); }
+.rsMsgItem.rsAccent10 .rsSender { color: var(--sapAccentColor10); }
+
+.sapMText.rsText {
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: inherit;
+}
+
+.rsMeta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.375rem;
+    margin-top: 0.125rem;
+    font-size: 0.6875rem;
+    opacity: 0.7;
+}
+
+.rsMeta .sapMText {
+    font-size: inherit;
+    color: inherit;
+}
+
+/* ---------- Composer (pilula flutuante) ---------- */
+.rsComposer {
+    display: flex;
+    flex: none;
+    align-items: flex-end;
+    gap: 0.5rem;
+    width: min(820px, calc(100% - 2rem));
+    margin: 0.5rem auto 1rem;
+    padding: 0.375rem 0.375rem 0.375rem 1rem;
+    box-sizing: border-box;
+    border-radius: 24px;
+    background: var(--rs-surface);
+    box-shadow: var(--rs-shadow);
+    transition: box-shadow 180ms ease;
+}
+
+.rsComposer:focus-within {
+    box-shadow: var(--rs-shadow), 0 0 0 2px color-mix(in srgb, var(--rs-brand) 45%, transparent);
+}
+
+.rsComposer .rsComposerInput.sapMTextArea {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none !important;
+}
+
+.rsComposer .rsComposerInput .sapMTextAreaInner {
+    padding: 0.5625rem 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none !important;
+    font-size: 0.9375rem;
+    color: var(--rs-text);
+}
+
+.rsComposer .rsComposerInput .sapMTextAreaInner:focus,
+.rsComposer .rsComposerInput .sapMInputBaseContentWrapper,
+.rsComposer .rsComposerInput .sapMInputBaseContentWrapper:hover,
+.rsComposer .rsComposerInput .sapMInputBaseContentWrapper:focus-within {
+    outline: none;
+}
+
+.rsSendButton.sapMBtn {
+    flex: none;
+    width: 2.75rem;
+    min-width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 0;
+}
+
+.rsSendButton.sapMBtn .sapMBtnInner {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background-image: var(--rs-gradient);
+    color: var(--rs-on-brand);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--rs-brand) 35%, transparent);
+    animation: rsEnable 0.2s ease-out;
+}
+
+.rsSendButton.sapMBtnDisabled .sapMBtnInner {
+    background-image: none;
+    background-color: var(--rs-surface-2);
+    color: var(--rs-text-2);
+    box-shadow: none;
+    animation: none;
+}
+
+/* ---------- Estado vazio ---------- */
+.rsEmpty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    height: 100%;
+    padding: 2rem;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.rsEmptyLogo {
+    width: 6rem;
+    height: 6rem;
+    margin-bottom: 0.5rem;
+}
+
+.sapMTitle.rsEmptyTitle {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--rs-text);
+}
+
+.sapMText.rsEmptyText {
+    color: var(--rs-text-2);
+}
+
+/* ---------- Perfil (dialogo sem cabecalho Fiori) ---------- */
+.rsProfileDialog.sapMDialog {
+    overflow: hidden;
+    border-radius: var(--rs-radius-lg);
+    background: var(--rs-surface);
+    box-shadow: var(--rs-shadow);
+}
+
+.rsProfileBody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1.5rem 1.25rem 0.5rem;
+    box-sizing: border-box;
+}
+
+.rsProfileHero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.rsProfileRing {
+    padding: 3px;
+}
+
+.rsProfileRing .sapFAvatar {
+    box-shadow: 0 0 0 3px var(--rs-surface);
+}
+
+.sapFAvatar.rsProfileAvatar {
+    width: 6rem;
+    height: 6rem;
+    font-size: 2rem;
+}
+
+.sapMTitle.rsProfileName {
+    margin: 0.5rem 0 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--rs-text);
+}
+
+.sapMText.rsProfileHandle {
+    font-size: 0.875rem;
+    color: var(--rs-text-2);
+}
+
+.rsProfileBody .rsProfileAbout .sapMTextAreaInner {
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: var(--rs-surface-2);
+}
+
+.sapMText.rsProfileReadonly {
+    color: var(--rs-text-2);
+}
+
+/* ---------- Celular e tablet pequeno (ate 768px): telas separadas com deslize ---------- */
+@media (max-width: 768px) {
+    .rsRoundBtn.sapMBtn {
+        width: 2.75rem;
+        min-width: 2.75rem;
+        height: 2.75rem;
+    }
+
+    .rsChatPage .rsSidebar,
+    .rsChatPage .rsMain {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: auto;
+        border-right: 0;
+        transition: transform 240ms ease, visibility 240ms ease;
+    }
+
+    .rsChatPage[data-rs-view="chat"] .rsSidebar {
+        transform: translateX(-24%);
+        visibility: hidden;
+    }
+
+    .rsMain {
+        transform: translateX(100%);
+        visibility: hidden;
+    }
+
+    .rsChatPage[data-rs-view="chat"] .rsMain {
+        transform: none;
+        visibility: visible;
+    }
+
+    .rsBackBtn.sapMBtn {
+        display: inline-flex;
+    }
+
+    .rsComposer {
+        width: calc(100% - 1rem);
+        margin-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+    }
+
+    .rsMsgItem.sapMLIB {
+        padding: 0 0.625rem;
+    }
+
+    .rsBubble {
+        max-width: 82%;
+    }
+
+    .rsAuthShell {
+        flex-direction: column;
+    }
+
+    .rsHero {
+        flex: none;
+        min-height: 30dvh;
+    }
+
+    .rsHeroContent {
+        padding: 2.5rem 1.5rem 3.5rem;
+        max-width: none;
+        text-align: center;
+    }
+
+    .rsHeroLogo {
+        margin: 0 auto 0.75rem;
+    }
+
+    .sapMTitle.rsHeroTitle {
+        font-size: 2.25rem;
+    }
+
+    .rsPreview {
+        display: none;
+    }
+
+    .rsAuthPanel {
+        flex: 1 1 auto;
+        align-items: flex-start;
+        margin-top: -28px;
+        padding: 1.75rem 1.25rem 2rem;
+        border-radius: 28px 28px 0 0;
+        background: var(--rs-surface);
+        box-shadow: var(--rs-shadow);
+    }
+
+    .rsAuthCard {
+        max-width: none;
+    }
+}
+
+/* ---------- Movimento reduzido ---------- */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* ---------- Ajustes de revisao: busca, composer, avatares, status online ---------- */
+.rsSearch .rsSearchInput.sapMInputBase,
+.rsSearch .rsSearchInput .sapMInputBaseContentWrapper,
+.rsSearch .rsSearchInput .sapMInputBaseContentWrapper:focus-within,
+.rsSearch .rsSearchInput .sapMInputBaseInner,
+.rsSearch .rsSearchInput .sapMInputBaseInner:focus {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.rsComposer .rsComposerInput.sapMTextArea,
+.rsComposer .rsComposerInput .sapMTextAreaInner,
+.rsComposer .rsComposerInput .sapMTextAreaInner:hover,
+.rsComposer .rsComposerInput .sapMTextAreaInner:focus,
+.rsComposer .rsComposerInput .sapMInputBaseContentWrapper,
+.rsComposer .rsComposerInput .sapMInputBaseContentWrapper:hover,
+.rsComposer .rsComposerInput .sapMInputBaseContentWrapper:focus-within {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.rsSendButton.sapMBtn .sapMBtnInner,
+.rsSendButton.sapMBtn:hover .sapMBtnInner {
+    background: var(--rs-gradient) !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    color: var(--rs-on-brand) !important;
+}
+
+.rsSendButton.sapMBtn .sapMBtnIcon,
+.rsSendButton.sapMBtn .sapUiIcon {
+    color: var(--rs-on-brand) !important;
+}
+
+.rsSendButton.sapMBtnDisabled .sapMBtnInner,
+.rsSendButton.sapMBtnDisabled:hover .sapMBtnInner {
+    background: var(--rs-surface-2) !important;
+    color: var(--rs-text-2) !important;
+}
+
+.rsSendButton.sapMBtnDisabled .sapMBtnIcon,
+.rsSendButton.sapMBtnDisabled .sapUiIcon {
+    color: var(--rs-text-2) !important;
+}
+
+/* Avatares: redondos, sem borda; grupos e Geral com gradiente e icone branco */
+.sapFAvatar {
+    border: 0;
+    border-radius: 50%;
+}
+
+.sapFAvatar .sapFAvatarIcon,
+.sapFAvatar .sapUiIcon {
+    color: var(--rs-on-brand);
+}
+
+.rsConvAvatar.sapFAvatar.sapFAvatar {
+    color: var(--rs-on-brand);
+}
+
+.rsConvItem[data-rs-kind="General"] .rsConvAvatar.sapFAvatar,
+.rsConvItem[data-rs-kind="Group"] .rsConvAvatar.sapFAvatar,
+.rsConvItem[data-rs-kind="Channel"] .rsConvAvatar.sapFAvatar {
+    background: var(--rs-gradient) !important;
+}
+
+.rsConvItem[data-rs-kind="Group"] .rsConvAvatar.sapFAvatar,
+.rsConvItem[data-rs-kind="Channel"] .rsConvAvatar.sapFAvatar {
+    background: linear-gradient(135deg, var(--rs-brand-2), var(--rs-brand)) !important;
+}
+
+/* Avatar do cabecalho da conversa: mesmo tratamento da lista (Geral: gradiente; grupo/canal: gradiente invertido) */
+.rsChatHeader[data-rs-kind="General"] .rsChatAvatar.sapFAvatar {
+    background: var(--rs-gradient) !important;
+}
+
+.rsChatHeader[data-rs-kind="Group"] .rsChatAvatar.sapFAvatar,
+.rsChatHeader[data-rs-kind="Channel"] .rsChatAvatar.sapFAvatar {
+    background: linear-gradient(135deg, var(--rs-brand-2), var(--rs-brand)) !important;
+}
+
+/* ---------- Banner de notificacoes (topo da lista de conversas) ---------- */
+.rsPushBanner {
+    display: flex;
+    flex: none;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 1rem 0.75rem;
+    padding: 0.625rem 0.75rem;
+    box-sizing: border-box;
+    border: 1px solid var(--rs-border);
+    border-radius: var(--rs-radius);
+    background: color-mix(in srgb, var(--rs-brand) 10%, var(--rs-surface));
+    box-shadow: var(--rs-shadow);
+}
+
+.rsPushBannerIcon {
+    flex: none;
+    color: var(--rs-brand);
+}
+
+.sapMText.rsPushBannerText {
+    flex: 1 1 10rem;
+    min-width: 0;
+    font-size: 0.8125rem;
+    color: var(--rs-text);
+}
+
+.rsPushBannerBtn.sapMBtn .sapMBtnInner {
+    min-height: 2rem;
+    padding: 0 0.75rem;
+    font-size: 0.8125rem;
+}
+
+/* ---------- Dialogs de notificacoes e instalacao ---------- */
+.rsNotifyBody,
+.rsInstallBody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.25rem 0;
+}
+
+.sapMText.rsNotifyIntro {
+    font-size: 0.875rem;
+    color: var(--rs-text-2);
+}
+
+.sapMMessageStrip.rsNotifyStrip {
+    margin: 0;
+    border-radius: var(--rs-radius-sm);
+}
+
+.rsNotifyRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    box-sizing: border-box;
+    border-radius: var(--rs-radius-sm);
+    background: var(--rs-surface-2);
+}
+
+.sapMText.rsNotifyLabel {
+    font-weight: 600;
+    color: var(--rs-text);
+}
+
+.rsNotifyTest.sapMBtn {
+    align-self: flex-start;
+}
+
+.rsStep {
+    gap: 0.75rem;
+}
+
+.sapMText.rsStepNum {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background-image: var(--rs-gradient);
+    color: var(--rs-on-brand);
+    font-size: 0.8125rem;
+    font-weight: 700;
+}
+
+.sapMText.rsStepText {
+    font-size: 0.9375rem;
+    color: var(--rs-text);
+}
+
+/* Status online no subtitulo da conversa */
+.rsSubtitle.sapMText[data-rs-state="online"] {
+    color: var(--rs-online);
+}

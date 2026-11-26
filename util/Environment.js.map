@@ -1,0 +1,1 @@
+{"version":3,"file":"Environment.js","names":["LOCAL_HOSTS","Environment","isLocal","includes","window","location","hostname"],"sources":["./Environment.ts"],"mappings":"yCAAA,MAAMA,EAAc,CAAC,YAAa,aAEnB,MAAMC,EAEjB,cAAcC,GACV,OAAOF,EAAYG,SAASC,OAAOC,SAASC,SAChD,EAEH,OAAAL,CAAA","ignoreList":[]}

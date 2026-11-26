@@ -1,0 +1,111 @@
+import Controller from "sap/ui/core/mvc/Controller";
+import UIComponent from "sap/ui/core/UIComponent";
+import MessageBox from "sap/m/MessageBox";
+import MessageToast from "sap/m/MessageToast";
+import type Router from "sap/ui/core/routing/Router";
+import type JSONModel from "sap/ui/model/json/JSONModel";
+import type ODataModel from "sap/ui/model/odata/v4/ODataModel";
+import type ResourceModel from "sap/ui/model/resource/ResourceModel";
+import type ResourceBundle from "sap/base/i18n/ResourceBundle";
+import formatter from "../model/formatter";
+import type Component from "../Component";
+import type AuthService from "../auth/AuthService";
+import type ChatService from "../service/ChatService";
+import type RealtimeService from "../service/RealtimeService";
+import type PresenceModel from "../model/PresenceModel";
+import { errorDetail, isUnauthorized } from "../util/errors";
+
+/**
+ * @namespace apps.dflc.resenha.controller
+ */
+export default abstract class BaseController extends Controller {
+
+    public readonly formatter = formatter;
+
+    protected getRouter(): Router {
+        return UIComponent.getRouterFor(this);
+    }
+
+    public getAppComponent(): Component {
+        return this.getOwnerComponent() as unknown as Component;
+    }
+
+    public getAuth(): AuthService {
+        return this.getAppComponent().getAuth();
+    }
+
+    public getChatService(): ChatService {
+        return this.getAppComponent().getChatService();
+    }
+
+    public getRealtime(): RealtimeService {
+        return this.getAppComponent().getRealtime();
+    }
+
+    public getPresence(): PresenceModel {
+        return this.getAppComponent().getPresence();
+    }
+
+    public getODataModel(): ODataModel {
+        return this.getAppComponent().getModel() as ODataModel;
+    }
+
+    public getUiModel(): JSONModel {
+        return this.getAppComponent().getModel("ui") as JSONModel;
+    }
+
+    public getSessionModel(): JSONModel {
+        return this.getAppComponent().getModel("session") as JSONModel;
+    }
+
+    public navTo(route: string, parameters?: object, replace?: boolean): void {
+        this.getRouter().navTo(route, parameters, replace);
+    }
+
+    public getText(key: string, parameters?: unknown[]): string {
+        const bundle = (this.getAppComponent().getModel("i18n") as ResourceModel).getResourceBundle() as ResourceBundle;
+
+        return bundle.getText(key, parameters as string[]) ?? key;
+    }
+
+    public showToast(key: string, parameters?: unknown[]): void {
+        MessageToast.show(this.getText(key, parameters));
+    }
+
+    public confirm(key: string, parameters?: unknown[]): Promise<boolean> {
+        return new Promise((resolve) => {
+            MessageBox.confirm(this.getText(key, parameters), {
+                onClose: (action: string | null) => resolve(action === MessageBox.Action.OK)
+            });
+        });
+    }
+
+    /** 401 renova o token uma vez (se renovar, avisa para repetir); os demais erros viram MessageBox. */
+    public async handleError(error: unknown, key: string): Promise<void> {
+        if (isUnauthorized(error)) {
+            if (await this.getAuth().handleUnauthorized()) {
+                this.showToast("sessionRenewed");
+            }
+
+            return;
+        }
+
+        const detail = errorDetail(error);
+        const message = this.getText(key);
+
+        MessageBox.error(detail ? `${message}\n\n${detail}` : message);
+    }
+
+    public async runBusy<Result>(action: () => Promise<Result>): Promise<Result> {
+        const view = this.getView();
+
+        view?.setBusy(true);
+
+        try {
+            return await action();
+        } finally {
+            view?.setBusy(false);
+        }
+    }
+
+}

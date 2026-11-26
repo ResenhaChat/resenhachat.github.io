@@ -1,0 +1,2 @@
+sap.ui.define([],function(){"use strict";function e(e){return e?.status===401}function r(e){return e?.message??""}var t={__esModule:true};t.isUnauthorized=e;t.errorDetail=r;return t});
+//# sourceMappingURL=errors.js.map

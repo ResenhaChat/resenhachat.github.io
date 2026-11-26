@@ -1,0 +1,2 @@
+sap.ui.define(["./BaseController"],function(e){"use strict";function n(e){return e&&e.__esModule&&typeof e.default!=="undefined"?e.default:e}const t=n(e);const s=t.extend("apps.dflc.resenha.controller.App",{onInit:function e(){this.getView()?.addStyleClass("rsApp")}});return s});
+//# sourceMappingURL=App.controller.js.map

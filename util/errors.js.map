@@ -1,0 +1,1 @@
+{"version":3,"file":"errors.js","names":["isUnauthorized","error","status","errorDetail","message","__exports","__esModule"],"sources":["./errors.ts"],"mappings":"yCAKO,SAASA,EAAeC,GAC3B,OAAQA,GAA4BC,SAAW,GACnD,CAEO,SAASC,EAAYF,GACxB,OAAQA,GAA4BG,SAAW,EACnD,CAAC,IAAAC,EAAA,CAAAC,WAAA,MAAAD,EAAAL,iBAAAK,EAAAF,cAAA,OAAAE,CAAA","ignoreList":[]}
