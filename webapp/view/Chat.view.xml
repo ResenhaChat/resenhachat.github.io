@@ -2,170 +2,214 @@
     controllerName="apps.dflc.resenha.controller.Chat"
     xmlns:mvc="sap.ui.core.mvc"
     xmlns:core="sap.ui.core"
-    xmlns:f="sap.f"
     xmlns="sap.m"
     displayBlock="true"
 >
-    <Page id="chatPage" showHeader="false" enableScrolling="false" class="rsChatPage">
-        <f:FlexibleColumnLayout id="fcl" layout="{ui>/layout}" backgroundDesign="Solid" class="rsFcl">
+    <HBox id="chatPage" class="rsChatPage" width="100%" height="100%" renderType="Bare">
+        <customData>
+            <core:CustomData key="rs-view" value="{ui>/mobileView}" writeToDom="true" />
+        </customData>
 
-            <f:beginColumnPages>
-                <Page id="conversationsPage" showHeader="false" enableScrolling="false" class="rsListPage">
-                    <VBox class="rsColumn" renderType="Bare">
-                        <HBox class="rsListHeader" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
-                            <HBox alignItems="Center">
-                                <Avatar id="meAvatar" displaySize="S" class="rsMeAvatar" tooltip="{i18n>menuTooltip}"
+        <VBox id="sidebar" class="rsSidebar" renderType="Bare" height="100%">
+            <HBox class="rsSideHead" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                <HBox class="rsBrand" renderType="Bare" alignItems="Center">
+                    <Image src="img/logo.svg" alt="{i18n>appName}" class="rsBrandLogo" />
+                    <Text text="{i18n>appName}" class="rsBrandName" />
+                </HBox>
+                <HBox class="rsSideActions" renderType="Bare" alignItems="Center">
+                    <Button id="themeButton" class="rsRoundBtn" type="Transparent"
+                        icon="{path: 'ui>/darkMode', formatter: '.formatter.themeIcon'}"
+                        tooltip="{i18n>themeToggle}" press=".conversations.onToggleTheme" />
+                    <Avatar id="meAvatar" displaySize="S" class="rsMeAvatar" tooltip="{i18n>menuTooltip}"
+                        initials="{path: 'DisplayName', formatter: '.formatter.initials'}"
+                        backgroundColor="{path: 'ID', formatter: '.formatter.accent'}"
+                        press=".conversations.onOpenMenu" />
+                </HBox>
+            </HBox>
+
+            <HBox class="rsSearch" renderType="Bare" alignItems="Center">
+                <core:Icon src="sap-icon://search" decorative="true" class="rsSearchIcon" />
+                <Input id="conversationSearch" class="rsSearchInput" width="100%" placeholder="{i18n>searchPlaceholder}"
+                    valueLiveUpdate="true" liveChange=".conversations.onSearch" />
+            </HBox>
+
+            <VBox id="onlineStrip" class="rsOnline" renderType="Bare"
+                visible="{parts: [{path: 'presence>/online'}, {path: 'session>/user/ID'}], formatter: '.formatter.hasOthersOnline'}">
+                <Text text="{i18n>onlineNow}" class="rsSectionLabel" />
+                <ScrollContainer id="onlineScroll" width="100%" horizontal="true" vertical="false" class="rsOnlineScroll">
+                    <HBox id="onlineList" class="rsOnlineList" renderType="Bare"
+                        items="{ path: '/People', parameters: { $select: 'DisplayName' } }">
+                        <VBox class="rsOnlineItem" renderType="Bare">
+                            <VBox class="rsRing" renderType="Bare">
+                                <Avatar displaySize="M" class="rsRingAvatar"
                                     initials="{path: 'DisplayName', formatter: '.formatter.initials'}"
-                                    backgroundColor="{path: 'ID', formatter: '.formatter.accent'}"
-                                    press=".conversations.onOpenMenu" />
-                                <Title text="{i18n>appName}" titleStyle="H4" class="rsListTitle" />
-                            </HBox>
-                            <Button id="menuButton" icon="sap-icon://overflow" type="Transparent"
-                                tooltip="{i18n>menuTooltip}" press=".conversations.onOpenMenu" />
-                        </HBox>
+                                    backgroundColor="{path: 'ID', formatter: '.formatter.accent'}" />
+                            </VBox>
+                            <Text class="rsOnlineName" maxLines="1"
+                                text="{path: 'DisplayName', formatter: '.formatter.firstName'}" />
+                        </VBox>
+                    </HBox>
+                </ScrollContainer>
+            </VBox>
 
-                        <SearchField id="conversationSearch" class="rsSearch" placeholder="{i18n>searchPlaceholder}"
-                            liveChange=".conversations.onSearch" search=".conversations.onSearch" />
+            <HBox id="pushBanner" class="rsPushBanner" renderType="Bare" alignItems="Center"
+                visible="{notifications>/bannerVisible}">
+                <core:Icon src="sap-icon://bell" decorative="true" class="rsPushBannerIcon" />
+                <Text text="{i18n>pushBannerText}" maxLines="2" class="rsPushBannerText" />
+                <Button id="pushBannerLater" text="{i18n>pushBannerLater}" type="Transparent"
+                    class="rsGhostBtn rsPushBannerBtn" press=".notifications.onBannerLater" />
+                <Button id="pushBannerEnable" text="{i18n>pushBannerEnable}" type="Emphasized"
+                    class="rsGradientBtn rsPushBannerBtn" press=".notifications.onBannerEnable" />
+            </HBox>
 
-                        <ScrollContainer id="conversationScroll" vertical="true" height="auto" class="rsScroll">
-                            <List id="conversationList" mode="SingleSelectMaster" showSeparators="None" growing="true"
-                                growingThreshold="30" noDataText="{i18n>noConversations}" class="rsConvList"
-                                selectionChange=".conversations.onSelect" updateFinished=".conversations.onUpdateFinished"
-                                items="{
-                                    path: '/Conversations',
-                                    parameters: {
-                                        $orderby: 'LastMessageAt desc'
-                                    },
-                                    events: { dataReceived: '.onDataReceived' }
-                                }">
-                                <CustomListItem type="Active" class="rsConvItem">
-                                    <HBox class="rsConvRow" renderType="Bare" alignItems="Center">
-                                        <Avatar displaySize="M"
-                                            src="{path: 'Kind', formatter: '.formatter.conversationIcon'}"
-                                            initials="{path: 'Name', formatter: '.formatter.initials'}"
-                                            backgroundColor="{path: 'ID', formatter: '.formatter.accent'}" />
-                                        <VBox class="rsConvBody" renderType="Bare">
-                                            <HBox renderType="Bare" justifyContent="SpaceBetween" alignItems="Center">
-                                                <Text text="{Name}" maxLines="1" class="rsConvName" />
-                                                <Text class="rsConvTime"
-                                                    text="{path: 'LastMessageAt', targetType: 'any', formatter: '.formatter.conversationTime'}" />
-                                            </HBox>
-                                            <HBox renderType="Bare" justifyContent="SpaceBetween" alignItems="Center">
-                                                <Text maxLines="1" class="rsConvPreview"
-                                                    visible="{parts: [{path: 'ID', targetType: 'any'}, {path: 'presence>/typing'}], formatter: '.formatter.isNotTypingIn'}"
-                                                    text="{path: 'LastMessage', formatter: '.formatter.messagePreview'}" />
-                                                <HBox class="rsTypingLine" renderType="Bare"
-                                                    visible="{parts: [{path: 'ID', targetType: 'any'}, {path: 'presence>/typing'}], formatter: '.formatter.isTypingIn'}">
-                                                    <Text text="{i18n>typingShort}" />
-                                                    <Text class="rsDot" />
-                                                    <Text class="rsDot" />
-                                                    <Text class="rsDot" />
-                                                </HBox>
-                                                <Text class="rsBadge" text="{path: 'UnreadCount', targetType: 'any', formatter: '.formatter.unreadBadge'}"
-                                                    tooltip="{path: 'UnreadCount', targetType: 'any', formatter: '.formatter.unreadTooltip'}"
-                                                    visible="{path: 'UnreadCount', targetType: 'any', formatter: '.formatter.hasUnread'}" />
-                                            </HBox>
-                                        </VBox>
-                                    </HBox>
-                                </CustomListItem>
-                            </List>
-                        </ScrollContainer>
-                    </VBox>
-                </Page>
-            </f:beginColumnPages>
-
-            <f:midColumnPages>
-                <Page id="messagesPage" showHeader="false" enableScrolling="false" class="rsMessagesPage">
-                    <VBox id="emptyState" class="rsEmpty" alignItems="Center" justifyContent="Center"
-                        visible="{= !${ui>/conversationId} }">
-                        <core:Icon src="sap-icon://discussion" size="3rem" class="rsEmptyIcon" decorative="true" />
-                        <Title text="{i18n>emptyTitle}" titleStyle="H4" />
-                        <Text text="{i18n>emptyText}" textAlign="Center" />
-                    </VBox>
-
-                    <VBox id="chatColumn" class="rsColumn rsChatColumn" renderType="Bare" visible="{= !!${ui>/conversationId} }">
-                        <HBox id="chatHeader" class="rsChatHeader" renderType="Bare" alignItems="Center">
-                            <Button id="backButton" icon="sap-icon://nav-back" type="Transparent" tooltip="{i18n>back}"
-                                visible="{device>/system/phone}" press=".messages.onBack" />
-                            <Avatar displaySize="S"
+            <ScrollContainer id="conversationScroll" vertical="true" height="auto" class="rsScroll">
+                <List id="conversationList" mode="SingleSelectMaster" showSeparators="None" growing="true"
+                    growingThreshold="30" noDataText="{i18n>noConversations}" class="rsConvList"
+                    selectionChange=".conversations.onSelect" updateFinished=".conversations.onUpdateFinished"
+                    items="{
+                        path: '/Conversations',
+                        parameters: {
+                            $orderby: 'LastMessageAt desc'
+                        },
+                        events: { dataReceived: '.onConversationsDataReceived' }
+                    }">
+                    <CustomListItem type="Active" class="rsConvItem">
+                        <customData>
+                            <core:CustomData key="rs-kind" value="{= ${Kind} || 'None' }" writeToDom="true" />
+                        </customData>
+                        <HBox class="rsConvRow" renderType="Bare" alignItems="Center">
+                            <Avatar class="rsConvAvatar" displaySize="M"
                                 src="{path: 'Kind', formatter: '.formatter.conversationIcon'}"
                                 initials="{path: 'Name', formatter: '.formatter.initials'}"
                                 backgroundColor="{path: 'ID', formatter: '.formatter.accent'}" />
-                            <VBox class="rsChatTitle" renderType="Bare">
-                                <Title text="{Name}" titleStyle="H5" wrapping="false" />
-                                <Text text="{ui>/subtitle}" maxLines="1" class="rsSubtitle" visible="{= !${ui>/isTyping} }" />
-                                <HBox class="rsTypingLine rsSubtitle" renderType="Bare" visible="{ui>/isTyping}">
-                                    <Text text="{ui>/typingLabel}" maxLines="1" />
-                                    <Text class="rsDot" />
-                                    <Text class="rsDot" />
-                                    <Text class="rsDot" />
+                            <VBox class="rsConvBody" renderType="Bare">
+                                <HBox renderType="Bare" justifyContent="SpaceBetween" alignItems="Center">
+                                    <Text text="{Name}" maxLines="1" class="rsConvName" />
+                                    <Text class="rsConvTime"
+                                        text="{path: 'LastMessageAt', targetType: 'any', formatter: '.formatter.conversationTime'}" />
+                                </HBox>
+                                <HBox renderType="Bare" justifyContent="SpaceBetween" alignItems="Center">
+                                    <Text maxLines="1" class="rsConvPreview"
+                                        visible="{parts: [{path: 'ID', targetType: 'any'}, {path: 'presence>/typing'}], formatter: '.formatter.isNotTypingIn'}"
+                                        text="{path: 'LastMessage', formatter: '.formatter.messagePreview'}" />
+                                    <HBox class="rsTypingLine" renderType="Bare"
+                                        visible="{parts: [{path: 'ID', targetType: 'any'}, {path: 'presence>/typing'}], formatter: '.formatter.isTypingIn'}">
+                                        <Text text="{i18n>typingShort}" />
+                                        <Text class="rsDot" />
+                                        <Text class="rsDot" />
+                                        <Text class="rsDot" />
+                                    </HBox>
+                                    <Text class="rsBadge" text="{path: 'UnreadCount', targetType: 'any', formatter: '.formatter.unreadBadge'}"
+                                        tooltip="{path: 'UnreadCount', targetType: 'any', formatter: '.formatter.unreadTooltip'}"
+                                        visible="{path: 'UnreadCount', targetType: 'any', formatter: '.formatter.hasUnread'}" />
                                 </HBox>
                             </VBox>
                         </HBox>
+                    </CustomListItem>
+                </List>
+            </ScrollContainer>
+        </VBox>
 
-                        <ScrollContainer id="messageScroll" vertical="true" height="auto" class="rsScroll rsMessageScroll">
-                            <List id="messageList" showSeparators="None" backgroundDesign="Transparent" growing="true"
-                                growingThreshold="30" growingDirection="Upwards" growingScrollToLoad="true"
-                                noDataText="{i18n>noMessages}" class="rsMessageList"
-                                updateFinished=".messages.onUpdateFinished"
-                                items="{
-                                    path: 'Messages',
-                                    parameters: {
-                                        $$ownRequest: true,
-                                        $orderby: 'createdAt desc',
-                                        $expand: 'Sender($select=ID,DisplayName,Username)'
-                                    },
-                                    events: { dataReceived: '.onDataReceived' }
-                                }">
-                                <CustomListItem type="Inactive" class="rsMsgItem">
-                                    <customData>
-                                        <core:CustomData key="rs-mine" writeToDom="true"
-                                            value="{parts: [{path: 'Sender/ID', targetType: 'any'}, {path: 'session>/user/ID'}], formatter: '.formatter.isMine'}" />
-                                    </customData>
-                                    <VBox renderType="Bare">
-                                        <Text class="rsDaySep" visible="false" />
-                                        <HBox class="rsRow" renderType="Bare">
-                                            <HBox class="rsAvatarWrap" renderType="Bare">
-                                                <Avatar displaySize="XS"
-                                                    initials="{path: 'Sender/DisplayName', formatter: '.formatter.initials'}"
-                                                    backgroundColor="{path: 'Sender/ID', formatter: '.formatter.accent'}" />
-                                                <Text class="rsOnlineDot"
-                                                    visible="{parts: [{path: 'Sender/ID', targetType: 'any'}, {path: 'presence>/online'}], formatter: '.formatter.isOnline'}" />
-                                            </HBox>
-                                            <VBox class="rsBubble" renderType="Bare">
-                                                <Text text="{Sender/DisplayName}" maxLines="1" class="rsSender" />
-                                                <Text class="rsText"
-                                                    text="{parts: [{path: 'Text'}, {path: 'DeletedAt', targetType: 'any'}], formatter: '.formatter.messageText'}" />
-                                                <HBox class="rsMeta" renderType="Bare" justifyContent="End" alignItems="Center">
-                                                    <Text class="rsEdited" text="{i18n>edited}"
-                                                        visible="{parts: [{path: 'EditedAt', targetType: 'any'}, {path: 'DeletedAt', targetType: 'any'}], formatter: '.formatter.isEdited'}" />
-                                                    <Text class="rsTime" text="{path: 'createdAt', targetType: 'any', formatter: '.formatter.time'}" />
-                                                </HBox>
-                                            </VBox>
-                                        </HBox>
-                                    </VBox>
-                                </CustomListItem>
-                            </List>
-                        </ScrollContainer>
+        <VBox id="messagesPage" class="rsMain" renderType="Bare" height="100%">
+            <VBox id="emptyState" class="rsEmpty" renderType="Bare" alignItems="Center" justifyContent="Center"
+                visible="{= !${ui>/conversationId} }">
+                <Image src="img/logo.svg" alt="{i18n>appName}" class="rsEmptyLogo" />
+                <Title text="{i18n>emptyTitle}" titleStyle="H3" class="rsEmptyTitle" />
+                <Text text="{i18n>emptyText}" textAlign="Center" class="rsEmptyText" />
+            </VBox>
 
-                        <HBox id="composer" class="rsComposer" renderType="Bare" alignItems="End">
-                            <core:InvisibleText id="composerLabel" text="{i18n>composerPlaceholder}" />
-                            <TextArea id="composerInput" class="rsComposerInput" width="100%" rows="1" growing="true"
-                                growingMaxLines="6" valueLiveUpdate="true" value="{ui>/draft}" ariaLabelledBy="composerLabel"
-                                placeholder="{i18n>composerPlaceholder}" liveChange=".composer.onLiveChange" />
-                            <Button id="sendButton" class="rsSendButton" icon="sap-icon://paper-plane" type="Emphasized"
-                                tooltip="{i18n>sendTooltip}" press=".composer.onSend"
-                                enabled="{parts: [{path: 'ui>/draft'}, {path: 'ui>/sending'}], formatter: '.formatter.canSend'}" />
+            <VBox id="chatColumn" class="rsColumn rsChatColumn" renderType="Bare" visible="{= !!${ui>/conversationId} }">
+                <HBox id="chatHeader" class="rsChatHeader" renderType="Bare" alignItems="Center">
+                    <customData>
+                        <core:CustomData key="rs-kind" value="{= ${Kind} || 'None' }" writeToDom="true" />
+                    </customData>
+                    <Button id="backButton" icon="sap-icon://nav-back" type="Transparent" tooltip="{i18n>back}"
+                        class="rsRoundBtn rsBackBtn" press=".messages.onBack" />
+                    <Avatar displaySize="S" class="rsChatAvatar"
+                        src="{path: 'Kind', formatter: '.formatter.conversationIcon'}"
+                        initials="{path: 'Name', formatter: '.formatter.initials'}"
+                        backgroundColor="{path: 'ID', formatter: '.formatter.accent'}" />
+                    <VBox class="rsChatTitle" renderType="Bare">
+                        <Text text="{Name}" maxLines="1" class="rsChatName" />
+                        <Text text="{ui>/subtitle}" maxLines="1" class="rsSubtitle" visible="{= !${ui>/isTyping} }">
+                            <customData>
+                                <core:CustomData key="rs-state" writeToDom="true"
+                                    value="{= ${ui>/subtitleOnline} ? 'online' : 'idle' }" />
+                            </customData>
+                        </Text>
+                        <HBox class="rsTypingLine rsSubtitle" renderType="Bare" visible="{ui>/isTyping}">
+                            <Text text="{ui>/typingLabel}" maxLines="1" />
+                            <Text class="rsDot" />
+                            <Text class="rsDot" />
+                            <Text class="rsDot" />
                         </HBox>
                     </VBox>
-                </Page>
-            </f:midColumnPages>
+                </HBox>
 
-        </f:FlexibleColumnLayout>
+                <ScrollContainer id="messageScroll" vertical="true" height="auto" class="rsScroll rsMessageScroll">
+                    <List id="messageList" showSeparators="None" backgroundDesign="Transparent" growing="true"
+                        growingThreshold="30" growingDirection="Upwards" growingScrollToLoad="true"
+                        noDataText="{i18n>noMessages}" class="rsMessageList"
+                        updateFinished=".messages.onUpdateFinished"
+                        items="{
+                            path: 'Messages',
+                            parameters: {
+                                $$ownRequest: true,
+                                $orderby: 'createdAt desc',
+                                $expand: 'Sender($select=ID,DisplayName,Username)'
+                            },
+                            events: { dataReceived: '.onDataReceived' }
+                        }">
+                        <CustomListItem type="Inactive" class="rsMsgItem">
+                            <customData>
+                                <core:CustomData key="rs-mine" writeToDom="true"
+                                    value="{parts: [{path: 'Sender/ID', targetType: 'any'}, {path: 'session>/user/ID'}], formatter: '.formatter.isMine'}" />
+                            </customData>
+                            <VBox renderType="Bare">
+                                <Text class="rsDaySep" visible="false" />
+                                <HBox class="rsRow" renderType="Bare">
+                                    <HBox class="rsAvatarWrap" renderType="Bare">
+                                        <Avatar displaySize="XS"
+                                            initials="{path: 'Sender/DisplayName', formatter: '.formatter.initials'}"
+                                            backgroundColor="{path: 'Sender/ID', formatter: '.formatter.accent'}" />
+                                        <Text class="rsOnlineDot"
+                                            visible="{parts: [{path: 'Sender/ID', targetType: 'any'}, {path: 'presence>/online'}], formatter: '.formatter.isOnline'}" />
+                                    </HBox>
+                                    <VBox class="rsBubble" renderType="Bare">
+                                        <Text text="{Sender/DisplayName}" maxLines="1" class="rsSender" />
+                                        <Text class="rsText"
+                                            text="{parts: [{path: 'Text'}, {path: 'DeletedAt', targetType: 'any'}], formatter: '.formatter.messageText'}" />
+                                        <HBox class="rsMeta" renderType="Bare" justifyContent="End" alignItems="Center">
+                                            <Text class="rsEdited" text="{i18n>edited}"
+                                                visible="{parts: [{path: 'EditedAt', targetType: 'any'}, {path: 'DeletedAt', targetType: 'any'}], formatter: '.formatter.isEdited'}" />
+                                            <Text class="rsTime" text="{path: 'createdAt', targetType: 'any', formatter: '.formatter.time'}" />
+                                        </HBox>
+                                    </VBox>
+                                </HBox>
+                            </VBox>
+                        </CustomListItem>
+                    </List>
+                </ScrollContainer>
+
+                <HBox id="composer" class="rsComposer" renderType="Bare" alignItems="End">
+                    <core:InvisibleText id="composerLabel" text="{i18n>composerPlaceholder}" />
+                    <TextArea id="composerInput" class="rsComposerInput" width="100%" rows="1" growing="true"
+                        growingMaxLines="6" valueLiveUpdate="true" value="{ui>/draft}" ariaLabelledBy="composerLabel"
+                        placeholder="{i18n>composerPlaceholder}" liveChange=".composer.onLiveChange" />
+                    <Button id="sendButton" class="rsSendButton" icon="sap-icon://paper-plane" type="Emphasized"
+                        tooltip="{i18n>sendTooltip}" press=".composer.onSend"
+                        enabled="{parts: [{path: 'ui>/draft'}, {path: 'ui>/sending'}], formatter: '.formatter.canSend'}" />
+                </HBox>
+            </VBox>
+        </VBox>
 
         <dependents>
             <Menu id="userMenu">
                 <MenuItem id="menuProfile" text="{i18n>menuProfile}" icon="sap-icon://employee" press=".profile.onOpen" />
+                <MenuItem id="menuInstall" text="{i18n>menuInstall}" icon="sap-icon://download" visible="{pwa>/canInstall}"
+                    press=".install.onInstall" />
+                <MenuItem id="menuNotifications" text="{i18n>menuNotifications}" icon="sap-icon://bell"
+                    visible="{notifications>/configured}" press=".notifications.onOpen" />
                 <MenuItem id="menuTheme" text="{i18n>menuTheme}" icon="sap-icon://palette" startsSection="true">
                     <items>
                         <MenuItem text="{i18n>themeLight}" icon="sap-icon://light-mode" press=".conversations.onTheme">
@@ -182,5 +226,5 @@
                 <MenuItem id="menuLogout" text="{i18n>menuLogout}" icon="sap-icon://log" startsSection="true" press=".conversations.onLogout" />
             </Menu>
         </dependents>
-    </Page>
+    </HBox>
 </mvc:View>

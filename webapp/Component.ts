@@ -8,18 +8,24 @@ import AuthService from "./auth/AuthService";
 import type { AuthSession } from "./auth/AuthService";
 import { getRuntimeConfig, loadRuntimeConfig } from "./auth/RuntimeConfig";
 import ChatService from "./service/ChatService";
+import PushService from "./service/PushService";
 import RealtimeService from "./service/RealtimeService";
 import PresenceModel from "./model/PresenceModel";
 import { setFormatterTextProvider } from "./model/formatter";
 import ThemeManager from "./util/ThemeManager";
+import { createPwaModel } from "./util/pwa";
+import { createNotificationsModel } from "./util/notifications";
+import { registerServiceWorker } from "./util/push";
 
 export interface UiState {
-    layout: string;
+    mobileView: "list" | "chat";
+    darkMode: boolean;
     conversationId: string;
     draft: string;
     drafts: Record<string, string>;
     sending: boolean;
     subtitle: string;
+    subtitleOnline: boolean;
     typingLabel: string;
     isTyping: boolean;
     login: {
@@ -47,6 +53,8 @@ export default class Component extends UIComponent {
 
     private chatService?: ChatService;
 
+    private pushService?: PushService;
+
     private realtime?: RealtimeService;
 
     private chatModel?: ODataModel;
@@ -71,6 +79,14 @@ export default class Component extends UIComponent {
         }
 
         return this.chatService;
+    }
+
+    public getPushService(): PushService {
+        if (!this.pushService) {
+            throw new Error("Push service is not available before login");
+        }
+
+        return this.pushService;
     }
 
     public getRealtime(): RealtimeService {
@@ -105,6 +121,8 @@ export default class Component extends UIComponent {
         this.setModel(new JSONModel({ user: {} }), "session");
         this.setModel(new PresenceModel(), "presence");
         this.setModel(this.createUiModel(), "ui");
+        this.setModel(createPwaModel(), "pwa");
+        this.setModel(createNotificationsModel(), "notifications");
 
         const auth = this.getAuth();
 
@@ -123,18 +141,24 @@ export default class Component extends UIComponent {
 
     private createUiModel(): JSONModel {
         const state: UiState = {
-            layout: "OneColumn",
+            mobileView: "list",
+            darkMode: ThemeManager.isDark(),
             conversationId: "",
             draft: "",
             drafts: {},
             sending: false,
             subtitle: "",
+            subtitleOnline: false,
             typingLabel: "",
             isTyping: false,
             login: { mode: "login", login: "", password: "", email: "", username: "", displayName: "", error: "" }
         };
 
-        return new JSONModel(state);
+        const model = new JSONModel(state);
+
+        ThemeManager.onChange((dark) => model.setProperty("/darkMode", dark));
+
+        return model;
     }
 
     private onAuthChanged(session: AuthSession | null): void {
@@ -185,7 +209,10 @@ export default class Component extends UIComponent {
 
         this.setModel(this.chatModel);
         this.chatService = new ChatService(this.chatModel);
+        this.pushService = new PushService(this.chatModel);
         this.startRealtime();
+        void registerServiceWorker();
+        void this.pushService.sync().catch(() => false);
     }
 
     private startRealtime(): void {

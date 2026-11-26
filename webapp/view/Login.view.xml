@@ -5,50 +5,83 @@
     xmlns="sap.m"
     displayBlock="true"
 >
-    <Page id="loginPage" showHeader="false" enableScrolling="true" class="rsAuthPage">
-        <VBox class="rsAuthWrap" alignItems="Center" justifyContent="Center">
-            <VBox id="authCard" class="rsAuthCard">
-                <VBox class="rsBrand" alignItems="Center">
-                    <HBox class="rsLogo" alignItems="Center" justifyContent="Center">
-                        <core:Icon src="sap-icon://discussion" class="rsLogoIcon" size="2rem" decorative="true" />
-                    </HBox>
-                    <Title text="{i18n>appName}" titleStyle="H2" class="rsBrandName" />
-                    <Text text="{i18n>appSlogan}" class="rsBrandSlogan" textAlign="Center" />
+    <ScrollContainer id="loginPage" width="100%" height="100%" vertical="true" class="rsAuthPage">
+        <HBox class="rsAuthShell" renderType="Bare">
+
+            <VBox class="rsHero" renderType="Bare">
+                <Text class="rsBlob rsBlobA" />
+                <Text class="rsBlob rsBlobB" />
+                <Text class="rsBlob rsBlobC" />
+
+                <VBox class="rsHeroContent" renderType="Bare">
+                    <Image src="img/logo-white.svg" alt="{i18n>appName}" class="rsHeroLogo" />
+                    <Title text="{i18n>appName}" titleStyle="H1" class="rsHeroTitle" />
+                    <Text text="{i18n>appSlogan}" class="rsHeroSlogan" />
+
+                    <VBox class="rsPreview" renderType="Bare">
+                        <HBox class="rsPreviewRow" renderType="Bare">
+                            <Text text="{i18n>previewOther1}" class="rsPreviewBubble rsPreviewOther" />
+                        </HBox>
+                        <HBox class="rsPreviewRow rsPreviewRowMine" renderType="Bare">
+                            <Text text="{i18n>previewMine}" class="rsPreviewBubble rsPreviewMine" />
+                        </HBox>
+                        <HBox class="rsPreviewRow" renderType="Bare">
+                            <Text text="{i18n>previewOther2}" class="rsPreviewBubble rsPreviewOther" />
+                        </HBox>
+                    </VBox>
                 </VBox>
-
-                <SegmentedButton id="modeTabs" width="100%" selectedKey="{ui>/login/mode}" class="rsAuthTabs" selectionChange=".onModeChange">
-                    <items>
-                        <SegmentedButtonItem key="login" text="{i18n>authTabLogin}" />
-                        <SegmentedButtonItem key="register" text="{i18n>authTabRegister}" />
-                    </items>
-                </SegmentedButton>
-
-                <MessageStrip id="authError" type="Error" showIcon="true" class="rsAuthError"
-                    visible="{= !!${ui>/login/error} }" text="{ui>/login/error}" />
-
-                <VBox id="registerFields" visible="{= ${ui>/login/mode} === 'register' }">
-                    <Label text="{i18n>fieldDisplayName}" labelFor="displayNameInput" />
-                    <Input id="displayNameInput" value="{ui>/login/displayName}" valueLiveUpdate="true" maxLength="60"
-                        placeholder="{i18n>fieldDisplayName}" liveChange=".onFieldChange" submit=".onSubmit" class="rsAuthField" />
-                    <Label text="{i18n>fieldUsername}" labelFor="usernameInput" />
-                    <Input id="usernameInput" value="{ui>/login/username}" valueLiveUpdate="true" maxLength="30"
-                        placeholder="{i18n>fieldUsername}" liveChange=".onFieldChange" submit=".onSubmit" class="rsAuthField" />
-                    <Label text="{i18n>fieldEmail}" labelFor="emailInput" />
-                    <Input id="emailInput" value="{ui>/login/email}" valueLiveUpdate="true" type="Email" maxLength="120"
-                        placeholder="{i18n>fieldEmail}" liveChange=".onFieldChange" submit=".onSubmit" class="rsAuthField" />
-                </VBox>
-
-                <Label text="{i18n>fieldLogin}" labelFor="loginInput" visible="{= ${ui>/login/mode} === 'login' }" />
-                <Input id="loginInput" value="{ui>/login/login}" valueLiveUpdate="true" maxLength="120"
-                    visible="{= ${ui>/login/mode} === 'login' }" placeholder="{i18n>fieldLogin}"
-                    liveChange=".onFieldChange" submit=".onSubmit" class="rsAuthField" />
-                <Label text="{i18n>fieldPassword}" labelFor="passwordInput" />
-                <Input id="passwordInput" value="{ui>/login/password}" valueLiveUpdate="true" type="Password" maxLength="100"
-                    placeholder="{i18n>fieldPassword}" liveChange=".onFieldChange" submit=".onSubmit" class="rsAuthField" />
-
-                <Button id="submitButton" type="Emphasized" width="100%" class="rsAuthSubmit" press=".onSubmit"
-                    text="{= ${ui>/login/mode} === 'login' ? ${i18n>authSubmitLogin} : ${i18n>authSubmitRegister} }" />
             </VBox>
-        </VBox>
-    </Page>
+
+            <VBox class="rsAuthPanel" renderType="Bare">
+                <VBox id="authCard" class="rsAuthCard" renderType="Bare">
+                    <Title text="{= ${ui>/login/mode} === 'login' ? ${i18n>authTitleLogin} : ${i18n>authTitleRegister} }"
+                        titleStyle="H2" class="rsAuthTitle" />
+
+                    <HBox id="modeTabs" class="rsSeg" renderType="Bare" width="100%">
+                        <Button id="modeLogin" text="{i18n>authTabLogin}" width="100%" class="rsSegBtn" press=".onModeChange">
+                            <customData>
+                                <core:CustomData key="mode" value="login" />
+                                <core:CustomData key="rs-active" writeToDom="true"
+                                    value="{= ${ui>/login/mode} === 'login' ? 'true' : 'false' }" />
+                            </customData>
+                        </Button>
+                        <Button id="modeRegister" text="{i18n>authTabRegister}" width="100%" class="rsSegBtn" press=".onModeChange">
+                            <customData>
+                                <core:CustomData key="mode" value="register" />
+                                <core:CustomData key="rs-active" writeToDom="true"
+                                    value="{= ${ui>/login/mode} === 'register' ? 'true' : 'false' }" />
+                            </customData>
+                        </Button>
+                    </HBox>
+
+                    <MessageStrip id="authError" type="Error" showIcon="true" class="rsAuthError"
+                        visible="{= !!${ui>/login/error} }" text="{ui>/login/error}" />
+
+                    <VBox id="registerFields" visible="{= ${ui>/login/mode} === 'register' }" renderType="Bare">
+                        <Label text="{i18n>fieldDisplayName}" labelFor="displayNameInput" />
+                        <Input id="displayNameInput" value="{ui>/login/displayName}" valueLiveUpdate="true" maxLength="60"
+                            placeholder="{i18n>fieldDisplayName}" liveChange=".onFieldChange" submit=".onSubmit" class="rsAuthField" />
+                        <Label text="{i18n>fieldUsername}" labelFor="usernameInput" />
+                        <Input id="usernameInput" value="{ui>/login/username}" valueLiveUpdate="true" maxLength="30"
+                            placeholder="{i18n>fieldUsername}" liveChange=".onFieldChange" submit=".onSubmit" class="rsAuthField" />
+                        <Label text="{i18n>fieldEmail}" labelFor="emailInput" />
+                        <Input id="emailInput" value="{ui>/login/email}" valueLiveUpdate="true" type="Email" maxLength="120"
+                            placeholder="{i18n>fieldEmail}" liveChange=".onFieldChange" submit=".onSubmit" class="rsAuthField" />
+                    </VBox>
+
+                    <Label text="{i18n>fieldLogin}" labelFor="loginInput" visible="{= ${ui>/login/mode} === 'login' }" />
+                    <Input id="loginInput" value="{ui>/login/login}" valueLiveUpdate="true" maxLength="120"
+                        visible="{= ${ui>/login/mode} === 'login' }" placeholder="{i18n>fieldLogin}"
+                        liveChange=".onFieldChange" submit=".onSubmit" class="rsAuthField" />
+                    <Label text="{i18n>fieldPassword}" labelFor="passwordInput" />
+                    <Input id="passwordInput" value="{ui>/login/password}" valueLiveUpdate="true" type="Password" maxLength="100"
+                        placeholder="{i18n>fieldPassword}" liveChange=".onFieldChange" submit=".onSubmit" class="rsAuthField" />
+
+                    <Button id="submitButton" type="Emphasized" width="100%" class="rsAuthSubmit" press=".onSubmit"
+                        text="{= ${ui>/login/mode} === 'login' ? ${i18n>authSubmitLogin} : ${i18n>authSubmitRegister} }" />
+                </VBox>
+            </VBox>
+
+        </HBox>
+    </ScrollContainer>
 </mvc:View>

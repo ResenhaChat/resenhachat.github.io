@@ -8,10 +8,13 @@ import ConversationsSection from "./chat/ConversationsSection";
 import MessagesSection from "./chat/MessagesSection";
 import ComposerSection from "./chat/ComposerSection";
 import ProfileSection from "./chat/ProfileSection";
+import OnlineSection from "./chat/OnlineSection";
+import InstallSection from "./chat/InstallSection";
+import NotificationsSection from "./chat/NotificationsSection";
 import { isUnauthorized } from "../util/errors";
 
-const LAYOUT_LIST = "OneColumn";
-const LAYOUT_CONVERSATION = "TwoColumnsMidExpanded";
+const MOBILE_LIST = "list";
+const MOBILE_CHAT = "chat";
 const UNAUTHORIZED_RETRY_GAP_MS = 10_000;
 
 /**
@@ -27,6 +30,12 @@ export default class Chat extends BaseController {
 
     public readonly profile = new ProfileSection(this);
 
+    public readonly online = new OnlineSection(this);
+
+    public readonly install = new InstallSection(this);
+
+    public readonly notifications = new NotificationsSection(this);
+
     private lastUnauthorizedRetry = 0;
 
     public onInit(): void {
@@ -37,6 +46,8 @@ export default class Chat extends BaseController {
         this.conversations.init();
         this.messages.init();
         this.composer.init();
+        this.online.init();
+        this.notifications.init();
     }
 
     public onExit(): void {
@@ -45,7 +56,19 @@ export default class Chat extends BaseController {
         this.conversations.destroy();
         this.messages.destroy();
         this.profile.destroy();
+        this.online.destroy();
+        this.notifications.destroy();
+        this.install.destroy();
     }
+
+    /** Lista de conversas carregada: atualiza o contador de não lidas (título e selo) e trata o 401. */
+    public onConversationsDataReceived = (event: Event<{ error?: unknown }>): void => {
+        if (!event.getParameter("error")) {
+            this.conversations.updateUnread();
+        }
+
+        void this.onDataReceived(event);
+    };
 
     /** Binding de lista com 401: renova o token e relê, no máximo uma vez a cada 10 s. */
     public onDataReceived = async (event: Event<{ error?: unknown }>): Promise<void> => {
@@ -79,7 +102,7 @@ export default class Chat extends BaseController {
             return;
         }
 
-        this.getUiModel().setProperty("/layout", LAYOUT_LIST);
+        this.getUiModel().setProperty("/mobileView", MOBILE_LIST);
         this.messages.close();
         this.conversations.syncSelection();
     };
@@ -91,7 +114,7 @@ export default class Chat extends BaseController {
 
         const { id } = event.getParameter("arguments") as { id: string };
 
-        this.getUiModel().setProperty("/layout", LAYOUT_CONVERSATION);
+        this.getUiModel().setProperty("/mobileView", MOBILE_CHAT);
         this.composer.switchTo(id);
         this.messages.open(id);
         this.conversations.syncSelection();

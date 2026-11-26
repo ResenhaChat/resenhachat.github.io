@@ -2,31 +2,35 @@
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
 >
-    <Dialog id="profileDialog" title="{i18n>profileTitle}" contentWidth="26rem" stretch="{device>/system/phone}"
-        afterClose=".onAfterClose" class="rsProfileDialog">
+    <Dialog id="profileDialog" title="{i18n>profileTitle}" showHeader="false" contentWidth="26rem"
+        stretch="{device>/system/phone}" afterClose=".onAfterClose" class="rsProfileDialog">
         <content>
-            <VBox class="rsProfileBody">
-                <HBox justifyContent="Center" class="rsProfileAvatar">
-                    <Avatar displaySize="XL" initials="{path: 'DisplayName', formatter: '.formatter.initials'}"
-                        backgroundColor="{path: 'ID', formatter: '.formatter.accent'}" />
-                </HBox>
+            <VBox class="rsProfileBody" renderType="Bare">
+                <VBox class="rsProfileHero" renderType="Bare">
+                    <VBox class="rsRing rsProfileRing" renderType="Bare">
+                        <Avatar displaySize="XL" class="rsProfileAvatar"
+                            initials="{path: 'DisplayName', formatter: '.formatter.initials'}"
+                            backgroundColor="{path: 'ID', formatter: '.formatter.accent'}" />
+                    </VBox>
+                    <Title text="{DisplayName}" titleStyle="H3" class="rsProfileName" />
+                    <Text text="@{Username}" class="rsProfileHandle" />
+                </VBox>
+
                 <Label text="{i18n>fieldDisplayName}" labelFor="profileDisplayName" required="true" />
                 <Input id="profileDisplayName" value="{DisplayName}" maxLength="60" valueLiveUpdate="true"
-                    liveChange=".onNameChange" />
-                <Label text="{i18n>fieldAbout}" labelFor="profileAbout" class="sapUiSmallMarginTop" />
+                    liveChange=".onNameChange" class="rsAuthField" />
+                <Label text="{i18n>fieldAbout}" labelFor="profileAbout" />
                 <TextArea id="profileAbout" value="{About}" rows="3" maxLength="200" showExceededText="true"
-                    placeholder="{i18n>fieldAboutPlaceholder}" width="100%" />
-                <Label text="{i18n>fieldUsername}" class="sapUiSmallMarginTop" />
-                <Text text="@{Username}" class="rsProfileReadonly" />
-                <Label text="{i18n>fieldEmail}" class="sapUiSmallMarginTop" />
+                    placeholder="{i18n>fieldAboutPlaceholder}" width="100%" class="rsProfileAbout" />
+                <Label text="{i18n>fieldEmail}" />
                 <Text text="{Email}" class="rsProfileReadonly" />
             </VBox>
         </content>
         <beginButton>
-            <Button id="profileSaveButton" text="{i18n>save}" type="Emphasized" press=".onSave" />
+            <Button id="profileSaveButton" text="{i18n>save}" type="Emphasized" press=".onSave" class="rsGradientBtn" />
         </beginButton>
         <endButton>
-            <Button id="profileCancelButton" text="{i18n>cancel}" press=".onCancel" />
+            <Button id="profileCancelButton" text="{i18n>cancel}" type="Transparent" press=".onCancel" class="rsGhostBtn" />
         </endButton>
     </Dialog>
 </core:FragmentDefinition>

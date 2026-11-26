@@ -2,6 +2,7 @@ import BaseController from "./BaseController";
 import { ValueState } from "sap/ui/core/library";
 import type Input from "sap/m/Input";
 import type { Input$LiveChangeEvent } from "sap/m/Input";
+import type { Button$PressEvent } from "sap/m/Button";
 import { AuthError } from "../auth/AuthService";
 
 const USERNAME_PATTERN = /^[A-Za-z0-9_.]{3,30}$/;
@@ -32,7 +33,8 @@ export default class Login extends BaseController {
         this.getUiModel().setProperty("/login/error", "");
     };
 
-    public onModeChange(): void {
+    public onModeChange(event: Button$PressEvent): void {
+        this.getUiModel().setProperty("/login/mode", event.getSource().data("mode") as string);
         this.getUiModel().setProperty("/login/error", "");
         this.clearValueStates();
     }

@@ -5,11 +5,12 @@ import type Control from "sap/ui/core/Control";
 import type List from "sap/m/List";
 import type { ListBase$SelectionChangeEvent } from "sap/m/ListBase";
 import type Menu from "sap/m/Menu";
-import type SearchField from "sap/m/SearchField";
+import type Input from "sap/m/Input";
 import type { MenuItem$PressEvent } from "sap/m/MenuItem";
 import type ODataListBinding from "sap/ui/model/odata/v4/ODataListBinding";
 import type Chat from "../Chat.controller";
 import ThemeManager from "../../util/ThemeManager";
+import { showUnreadCount } from "../../util/pwa";
 import type { ThemeMode } from "../../util/ThemeManager";
 import type { ConversationReadPayload } from "../../service/RealtimeEvents";
 
@@ -58,6 +59,14 @@ export default class ConversationsSection {
         this.refreshTimer = window.setTimeout(() => this.getBinding()?.refresh(), REFRESH_DEBOUNCE_MS);
     }
 
+    /** Soma as não lidas das conversas já carregadas (sem request extra) para o título da aba e o selo. */
+    public updateUnread(): void {
+        const contexts = this.getBinding()?.getAllCurrentContexts() ?? [];
+        const total = contexts.reduce((sum, context) => sum + ((context.getProperty("UnreadCount") as number | null) ?? 0), 0);
+
+        showUnreadCount(total, this.controller.getText("appName"));
+    }
+
     /** Destaca na lista a conversa aberta (ou limpa a seleção quando não há). */
     public syncSelection(): void {
         const list = this.getList();
@@ -82,7 +91,7 @@ export default class ConversationsSection {
     };
 
     public onSearch = (event: Event): void => {
-        const query = event.getSource<SearchField>().getValue().trim();
+        const query = event.getSource<Input>().getValue().trim();
 
         window.clearTimeout(this.searchTimer);
         this.searchTimer = window.setTimeout(() => this.applyFilter(query), SEARCH_DEBOUNCE_MS);
@@ -92,11 +101,17 @@ export default class ConversationsSection {
         (this.controller.byId("userMenu") as Menu).openBy(event.getSource<Control>());
     };
 
+    public onToggleTheme = (): void => {
+        ThemeManager.setMode(ThemeManager.isDark() ? "light" : "dark");
+    };
+
     public onTheme = (event: MenuItem$PressEvent): void => {
         ThemeManager.setMode(event.getSource().data("mode") as ThemeMode);
     };
 
+    /** Antes de sair, o aparelho deixa de receber push deste usuário (o servidor ainda aceita o token). */
     public onLogout = async (): Promise<void> => {
+        await this.controller.getAppComponent().getPushService().detach().catch(() => undefined);
         await this.controller.getAuth().logout();
     };
 

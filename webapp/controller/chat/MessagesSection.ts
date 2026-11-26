@@ -4,7 +4,6 @@ import type { ListBase$UpdateFinishedEvent } from "sap/m/ListBase";
 import type ScrollContainer from "sap/m/ScrollContainer";
 import type Text from "sap/m/Text";
 import type VBox from "sap/m/VBox";
-import type Page from "sap/m/Page";
 import type ODataListBinding from "sap/ui/model/odata/v4/ODataListBinding";
 import type Context from "sap/ui/model/odata/v4/Context";
 import type Chat from "../Chat.controller";
@@ -108,7 +107,8 @@ export default class MessagesSection {
 
         ui.setProperty("/conversationId", conversationId);
         ui.setProperty("/subtitle", "");
-        (this.controller.byId("messagesPage") as Page).bindElement({ path: `/Conversations(${conversationId})` });
+        ui.setProperty("/subtitleOnline", false);
+        (this.controller.byId("messagesPage") as VBox).bindElement({ path: `/Conversations(${conversationId})` });
 
         void this.loadMembers(conversationId);
         void this.loadUnread(conversationId);
@@ -118,7 +118,7 @@ export default class MessagesSection {
         this.conversationId = "";
         this.memberIds = [];
         this.controller.getUiModel().setProperty("/conversationId", "");
-        (this.controller.byId("messagesPage") as Page).unbindElement();
+        (this.controller.byId("messagesPage") as VBox).unbindElement();
     }
 
     public onBack = (): void => this.controller.navTo("chat");
@@ -222,7 +222,7 @@ export default class MessagesSection {
 
     /** Lê UnreadCount do contexto da página; sem contexto (ou falha) assume uma não lida para não perder a marcação. */
     private async loadUnread(conversationId: string): Promise<void> {
-        const context = (this.controller.byId("messagesPage") as Page).getBindingContext() as Context | null;
+        const context = (this.controller.byId("messagesPage") as VBox).getBindingContext() as Context | null;
         let unread = 1;
 
         try {
@@ -306,9 +306,11 @@ export default class MessagesSection {
             return;
         }
 
-        const online = this.memberIds.filter((userId) => presence.isOnline(userId)).length;
+        const myId = this.getMyId();
+        const online = this.memberIds.filter((userId) => userId !== myId && presence.isOnline(userId)).length;
 
         ui.setProperty("/isTyping", false);
+        ui.setProperty("/subtitleOnline", online > 0);
         ui.setProperty("/subtitle", online ? this.controller.getText("subtitleOnline", [online]) : "");
     }
 

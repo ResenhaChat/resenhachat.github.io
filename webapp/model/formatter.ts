@@ -163,6 +163,24 @@ const formatter = {
 
     isEdited(editedAt: DateLike, deletedAt: DateLike): boolean {
         return !!toDate(editedAt) && !toDate(deletedAt);
+    },
+
+    firstName(name: string | null | undefined): string {
+        return (name ?? "").trim().split(/\s+/)[0] ?? "";
+    },
+
+    /** A faixa "Online agora" só aparece quando há alguém online além de mim. */
+    hasOthersOnline(online: Record<string, boolean> | undefined, myId: string | null | undefined): boolean {
+        return Object.keys(online ?? {}).some((userId) => userId !== myId);
+    },
+
+    /** Ícone do botão de tema: mostra o sol no escuro (vai para o claro) e a lua no claro. */
+    themeIcon(dark: boolean | undefined): string {
+        return dark ? "sap-icon://light-mode" : "sap-icon://dark-mode";
+    },
+
+    isMode(current: string | undefined, target: string): string {
+        return String(current === target);
     }
 
 };

@@ -1,0 +1,33 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+>
+    <Dialog id="notificationsDialog" title="{i18n>notificationsTitle}" contentWidth="26rem"
+        stretch="{device>/system/phone}" afterClose=".onAfterClose" class="rsNotifyDialog">
+        <content>
+            <VBox class="rsNotifyBody" renderType="Bare">
+                <Text text="{i18n>notifyIntro}" class="rsNotifyIntro" />
+                <MessageStrip text="{i18n>notifyDenied}" type="Warning" showIcon="true" class="rsNotifyStrip"
+                    visible="{= ${notifications>/permission} === 'denied' }" />
+                <MessageStrip text="{i18n>notifyUnsupported}" type="Information" showIcon="true" class="rsNotifyStrip"
+                    visible="{= ${notifications>/permission} === 'unsupported' }" />
+
+                <HBox class="rsNotifyRow" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                    <Text text="{i18n>notifyEnabled}" class="rsNotifyLabel" />
+                    <Switch id="notifySwitch" state="{NotificationsEnabled}" change=".onToggle" />
+                </HBox>
+                <HBox class="rsNotifyRow" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                    <Text text="{i18n>notifySound}" class="rsNotifyLabel" />
+                    <Switch id="notifySoundSwitch" state="{NotificationSound}" change=".onSoundChange" />
+                </HBox>
+
+                <Button id="notifyTestButton" text="{i18n>notifyTest}" icon="sap-icon://paper-plane" type="Transparent"
+                    press=".onSendTest" class="rsGhostBtn rsNotifyTest"
+                    visible="{= ${notifications>/permission} === 'granted' }" />
+            </VBox>
+        </content>
+        <endButton>
+            <Button id="notifyCloseButton" text="{i18n>closeDialog}" type="Transparent" press=".onClose" class="rsGhostBtn" />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

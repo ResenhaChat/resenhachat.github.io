@@ -1,0 +1,29 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+>
+    <Dialog id="iosInstallDialog" title="{i18n>installIosTitle}" contentWidth="24rem"
+        stretch="{device>/system/phone}" class="rsInstallDialog">
+        <content>
+            <VBox class="rsInstallBody" renderType="Bare">
+                <Text text="{i18n>installIosIntro}" class="rsNotifyIntro" />
+                <HBox class="rsStep" renderType="Bare" alignItems="Center">
+                    <Text text="1" class="rsStepNum" />
+                    <Text text="{i18n>installIosStep1}" class="rsStepText" />
+                </HBox>
+                <HBox class="rsStep" renderType="Bare" alignItems="Center">
+                    <Text text="2" class="rsStepNum" />
+                    <Text text="{i18n>installIosStep2}" class="rsStepText" />
+                </HBox>
+                <HBox class="rsStep" renderType="Bare" alignItems="Center">
+                    <Text text="3" class="rsStepNum" />
+                    <Text text="{i18n>installIosStep3}" class="rsStepText" />
+                </HBox>
+                <MessageStrip text="{i18n>installIosNote}" type="Information" showIcon="true" class="rsNotifyStrip" />
+            </VBox>
+        </content>
+        <endButton>
+            <Button id="iosInstallCloseButton" text="{i18n>closeDialog}" type="Transparent" press=".onCloseIos" class="rsGhostBtn" />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>
