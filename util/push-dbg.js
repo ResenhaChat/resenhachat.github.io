@@ -10,6 +10,31 @@ sap.ui.define([], function () {
    */
 
   const SERVICE_WORKER_TIMEOUT_MS = 10_000;
+  const OPEN_CONVERSATION = "rs-open-conversation";
+
+  /** Clique numa notificação com o app já aberto: o service worker pede para abrir a conversa (sem nova aba). */
+  function listenOpenConversation(onOpen) {
+    if (!("serviceWorker" in navigator)) {
+      return () => undefined;
+    }
+    const listener = event => {
+      const conversationId = openConversationId(event.data);
+      if (conversationId) {
+        onOpen(conversationId);
+      }
+    };
+    navigator.serviceWorker.addEventListener("message", listener);
+    return () => navigator.serviceWorker.removeEventListener("message", listener);
+  }
+  function openConversationId(data) {
+    if (!isRecord(data) || data.type !== OPEN_CONVERSATION || typeof data.conversationId !== "string") {
+      return null;
+    }
+    return data.conversationId;
+  }
+  function isRecord(value) {
+    return typeof value === "object" && value !== null;
+  }
   function pushSupported() {
     return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window && window.isSecureContext;
   }
@@ -89,6 +114,7 @@ sap.ui.define([], function () {
   var __exports = {
     __esModule: true
   };
+  __exports.listenOpenConversation = listenOpenConversation;
   __exports.pushSupported = pushSupported;
   __exports.registerServiceWorker = registerServiceWorker;
   __exports.serviceWorkerReady = serviceWorkerReady;

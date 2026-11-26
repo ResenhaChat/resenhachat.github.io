@@ -1,9 +1,11 @@
 sap.ui.define(["sap/ui/model/Filter", "sap/ui/model/FilterOperator"], function (Filter, FilterOperator) {
   "use strict";
 
-  /** Faixa "Online agora": /People filtrado pelos ids online do modelo presence (sem eu mesmo). */
+  /**
+   * Faixa "Online agora": /People filtrado pelos ids online do modelo presence (sem eu mesmo).
+   * A binding nasce suspensa; sem ninguém online ela fica suspensa e não consulta o servidor.
+   */
   class OnlineSection {
-    appliedKey = "";
     onPresenceChange = () => this.applyFilter();
     constructor(controller) {
       this.controller = controller;
@@ -15,18 +17,24 @@ sap.ui.define(["sap/ui/model/Filter", "sap/ui/model/FilterOperator"], function (
     destroy() {
       this.unsubscribe?.();
     }
-
-    /** Sem online ninguém a filtrar: mantém o filtro atual (a faixa fica escondida pela view). */
     applyFilter() {
-      const myId = this.controller.getSessionModel().getProperty("/user/ID");
-      const online = this.controller.getPresence().getProperty("/online");
-      const userIds = Object.keys(online ?? {}).filter(userId => userId !== myId);
+      const binding = this.getBinding();
+      const userIds = this.otherOnlineIds();
       const key = userIds.join(",");
-      if (!userIds.length || key === this.appliedKey) {
+      if (!binding) {
+        // A binding só existe depois que a lista recebe o modelo OData; reaplica nesse momento.
+        this.controller.byId("onlineList").attachEventOnce("modelContextChange", this.onPresenceChange);
+        return;
+      }
+      if (key === this.appliedKey) {
         return;
       }
       this.appliedKey = key;
-      this.getBinding()?.filter(new Filter({
+      if (!userIds.length) {
+        binding.suspend();
+        return;
+      }
+      binding.filter(new Filter({
         filters: userIds.map(userId => new Filter({
           path: "ID",
           operator: FilterOperator.EQ,
@@ -34,6 +42,14 @@ sap.ui.define(["sap/ui/model/Filter", "sap/ui/model/FilterOperator"], function (
         })),
         and: false
       }));
+      if (binding.isSuspended()) {
+        binding.resume();
+      }
+    }
+    otherOnlineIds() {
+      const myId = this.controller.getSessionModel().getProperty("/user/ID");
+      const online = this.controller.getPresence().getProperty("/online");
+      return Object.keys(online ?? {}).filter(userId => userId !== myId);
     }
     getBinding() {
       return this.controller.byId("onlineList").getBinding("items");

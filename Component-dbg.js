@@ -15,6 +15,7 @@ sap.ui.define(["sap/ui/core/UIComponent", "sap/ui/model/json/JSONModel", "sap/ui
   const ThemeManager = _interopRequireDefault(__ThemeManager);
   const createPwaModel = ___util_pwa["createPwaModel"];
   const createNotificationsModel = ___util_notifications["createNotificationsModel"];
+  const listenOpenConversation = ___util_push["listenOpenConversation"];
   const registerServiceWorker = ___util_push["registerServiceWorker"];
   const LOGIN_HASH = "/login";
 
@@ -68,6 +69,7 @@ sap.ui.define(["sap/ui/core/UIComponent", "sap/ui/model/json/JSONModel", "sap/ui
     },
     destroy: function _destroy() {
       this.realtime?.stop();
+      this.stopOpenConversation?.();
       UIComponent.prototype.destroy.call(this);
     },
     start: async function _start() {
@@ -89,6 +91,9 @@ sap.ui.define(["sap/ui/core/UIComponent", "sap/ui/model/json/JSONModel", "sap/ui
         window.location.replace(`#${LOGIN_HASH}`);
       }
       this.getRouter().initialize();
+      this.stopOpenConversation = listenOpenConversation(conversationId => this.getRouter().navTo("conversation", {
+        id: conversationId
+      }));
     },
     createUiModel: function _createUiModel() {
       const state = {

@@ -7,6 +7,38 @@
  */
 
 const SERVICE_WORKER_TIMEOUT_MS = 10_000;
+const OPEN_CONVERSATION = "rs-open-conversation";
+
+/** Clique numa notificação com o app já aberto: o service worker pede para abrir a conversa (sem nova aba). */
+export function listenOpenConversation(onOpen: (conversationId: string) => void): () => void {
+    if (!("serviceWorker" in navigator)) {
+        return () => undefined;
+    }
+
+    const listener = (event: MessageEvent<unknown>): void => {
+        const conversationId = openConversationId(event.data);
+
+        if (conversationId) {
+            onOpen(conversationId);
+        }
+    };
+
+    navigator.serviceWorker.addEventListener("message", listener);
+
+    return () => navigator.serviceWorker.removeEventListener("message", listener);
+}
+
+function openConversationId(data: unknown): string | null {
+    if (!isRecord(data) || data.type !== OPEN_CONVERSATION || typeof data.conversationId !== "string") {
+        return null;
+    }
+
+    return data.conversationId;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+}
 
 export function pushSupported(): boolean {
     return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window && window.isSecureContext;

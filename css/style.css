@@ -677,25 +677,26 @@ body {
     color: var(--rs-text);
 }
 
+/* Faixa compacta: 14px do título + 4px + 58px dos itens (anel 40px + 4px + nome 14px) = 76px */
 .rsOnline {
     display: flex;
     flex: none;
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 0 1rem 0.75rem;
+    gap: 4px;
+    padding: 0 1rem;
     box-sizing: border-box;
 }
 
 .sapMText.rsSectionLabel {
-    font-size: 0.75rem;
+    font-size: 11px;
+    line-height: 14px;
     font-weight: 600;
     color: var(--rs-text-2);
 }
 
 .rsOnlineList {
     display: flex;
-    gap: 0.75rem;
-    padding: 0.25rem 0.25rem 0.25rem 0;
+    gap: 8px;
     box-sizing: border-box;
 }
 
@@ -704,8 +705,19 @@ body {
     flex: none;
     flex-direction: column;
     align-items: center;
-    gap: 0.25rem;
+    gap: 4px;
     width: 56px;
+}
+
+.rsOnlineItem .rsRing {
+    padding: 2px;
+}
+
+.rsOnlineItem .rsRingAvatar.sapFAvatar {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    box-shadow: none;
 }
 
 .rsOnlineItem .rsRing::after {
@@ -713,8 +725,8 @@ body {
     position: absolute;
     right: 0;
     bottom: 0;
-    width: 0.75rem;
-    height: 0.75rem;
+    width: 10px;
+    height: 10px;
     box-sizing: border-box;
     border-radius: 50%;
     background: var(--rs-online);
@@ -722,9 +734,13 @@ body {
 }
 
 .sapMText.rsOnlineName {
-    max-width: 56px;
+    display: block;
+    width: 100%;
     overflow: hidden;
-    font-size: 0.75rem;
+    font-size: 11px;
+    line-height: 14px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
     text-align: center;
     color: var(--rs-text);
 }
@@ -948,6 +964,32 @@ body {
 
 .rsMsgItem.sapMLIB.rsGrouped {
     padding-top: 2px;
+}
+
+/* Foco de item de lista: o clique não desenha o retângulo do UI5; o teclado marca a bolha ou o cartão */
+.rsConvItem.sapMLIB:focus,
+.rsMsgItem.sapMLIB:focus,
+.rsConvItem.sapMLIB:focus-visible,
+.rsMsgItem.sapMLIB:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
+.rsConvItem.sapMLIB::after,
+.rsMsgItem.sapMLIB::after,
+.rsConvItem.sapMLIB:focus::after,
+.rsMsgItem.sapMLIB:focus::after {
+    content: none;
+    display: none;
+}
+
+.rsConvItem.sapMLIB:focus-visible .rsConvRow {
+    border-radius: var(--rs-radius);
+    box-shadow: var(--rs-focus-ring);
+}
+
+.rsMsgItem.sapMLIB:focus-visible .rsBubble {
+    box-shadow: var(--rs-focus-ring);
 }
 
 .sapMText.rsDaySep {

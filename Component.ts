@@ -15,7 +15,7 @@ import { setFormatterTextProvider } from "./model/formatter";
 import ThemeManager from "./util/ThemeManager";
 import { createPwaModel } from "./util/pwa";
 import { createNotificationsModel } from "./util/notifications";
-import { registerServiceWorker } from "./util/push";
+import { listenOpenConversation, registerServiceWorker } from "./util/push";
 
 export interface UiState {
     mobileView: "list" | "chat";
@@ -60,6 +60,8 @@ export default class Component extends UIComponent {
     private chatModel?: ODataModel;
 
     private lastAccessToken = "";
+
+    private stopOpenConversation?: () => void;
 
     public init(): void {
         super.init();
@@ -111,6 +113,7 @@ export default class Component extends UIComponent {
 
     public destroy(): void {
         this.realtime?.stop();
+        this.stopOpenConversation?.();
         super.destroy();
     }
 
@@ -137,6 +140,7 @@ export default class Component extends UIComponent {
         }
 
         this.getRouter().initialize();
+        this.stopOpenConversation = listenOpenConversation((conversationId) => this.getRouter().navTo("conversation", { id: conversationId }));
     }
 
     private createUiModel(): JSONModel {
