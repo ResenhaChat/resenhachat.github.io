@@ -38,14 +38,14 @@
                 <Text text="{i18n>onlineNow}" class="rsSectionLabel" />
                 <ScrollContainer id="onlineScroll" width="100%" horizontal="true" vertical="false" class="rsOnlineScroll">
                     <HBox id="onlineList" class="rsOnlineList" renderType="Bare"
-                        items="{ path: '/People', parameters: { $select: 'DisplayName' } }">
+                        items="{ path: '/People', suspended: true, parameters: { $select: 'DisplayName' } }">
                         <VBox class="rsOnlineItem" renderType="Bare">
                             <VBox class="rsRing" renderType="Bare">
-                                <Avatar displaySize="M" class="rsRingAvatar"
+                                <Avatar displaySize="XS" class="rsRingAvatar"
                                     initials="{path: 'DisplayName', formatter: '.formatter.initials'}"
                                     backgroundColor="{path: 'ID', formatter: '.formatter.accent'}" />
                             </VBox>
-                            <Text class="rsOnlineName" maxLines="1"
+                            <Text class="rsOnlineName" wrapping="false"
                                 text="{path: 'DisplayName', formatter: '.formatter.firstName'}" />
                         </VBox>
                     </HBox>

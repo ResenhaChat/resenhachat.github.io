@@ -28,22 +28,32 @@ function assetUrl(path) {
     return new URL(path, self.registration.scope).href;
 }
 
+function conversationUrl(conversationId) {
+    return new URL(`index.html#/c/${conversationId}`, self.registration.scope).href;
+}
+
 function showPushNotification(event) {
     const payload = readPayload(event);
+    const conversationId = payload.tag;
+    const url = payload.url || (conversationId ? conversationUrl(conversationId) : assetUrl("index.html"));
 
     return self.registration.showNotification(payload.title || "Resenha", {
         body: payload.body,
-        tag: payload.tag,
-        renotify: !!payload.tag,
+        tag: conversationId,
+        renotify: !!conversationId,
         icon: assetUrl("img/icon-192.png"),
         badge: assetUrl("img/favicon.png"),
-        data: { url: payload.url || self.registration.scope }
+        data: { url, conversationId }
     });
 }
 
-async function openNotificationUrl(url) {
+function isAppWindow(windowClient) {
+    return windowClient.url.startsWith(self.registration.scope);
+}
+
+async function openNotificationTarget({ url, conversationId }) {
     const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-    const client = windows.find((windowClient) => windowClient.url.startsWith(self.registration.scope));
+    const client = windows.find(isAppWindow);
 
     if (!client) {
         return self.clients.openWindow(url);
@@ -51,10 +61,8 @@ async function openNotificationUrl(url) {
 
     await client.focus();
 
-    try {
-        return await client.navigate(url);
-    } catch {
-        return self.clients.openWindow(url);
+    if (conversationId) {
+        client.postMessage({ type: "rs-open-conversation", conversationId });
     }
 }
 
@@ -64,5 +72,5 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
     event.notification.close();
-    event.waitUntil(openNotificationUrl(event.notification.data?.url || self.registration.scope));
+    event.waitUntil(openNotificationTarget(event.notification.data ?? { url: self.registration.scope }));
 });

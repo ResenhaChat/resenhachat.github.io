@@ -85,6 +85,9 @@ export async function showLocalNotification(content: AlertContent): Promise<void
         tag: content.conversationId,
         icon: new URL(ICON, registration.scope).href,
         badge: new URL(BADGE, registration.scope).href,
-        data: { url: new URL(`#/c/${content.conversationId}`, registration.scope).href }
+        data: {
+            url: new URL(`index.html#/c/${content.conversationId}`, registration.scope).href,
+            conversationId: content.conversationId
+        }
     });
 }
