@@ -1,4 +1,4 @@
-sap.ui.define(["./PeoplePicker", "../../model/formatter"], function (__PeoplePicker, __formatter) {
+sap.ui.define(["./PeoplePicker", "../../model/formatter", "../../util/MenuItemSync"], function (__PeoplePicker, __formatter, __MenuItemSync) {
   "use strict";
 
   function _interopRequireDefault(obj) {
@@ -6,6 +6,7 @@ sap.ui.define(["./PeoplePicker", "../../model/formatter"], function (__PeoplePic
   }
   const PeoplePicker = _interopRequireDefault(__PeoplePicker);
   const formatter = _interopRequireDefault(__formatter);
+  const MenuItemSync = _interopRequireDefault(__MenuItemSync);
   /** Índice do botão "⋯" dentro da linha de membro (avatar, corpo, botão). */
   const MEMBER_MENU_BUTTON = 2;
 
@@ -18,6 +19,7 @@ sap.ui.define(["./PeoplePicker", "../../model/formatter"], function (__PeoplePic
     destroy() {
       this.picker?.destroy();
       this.dialog?.destroy();
+      this.memberMenuItems?.destroy();
     }
 
     /** Mostra o "⋯" só nas linhas em que há alguma ação para mim (papel do painel + papel do membro). */
@@ -98,8 +100,10 @@ sap.ui.define(["./PeoplePicker", "../../model/formatter"], function (__PeoplePic
     configureMenu(context) {
       const role = context.getProperty("Role");
       const isMe = context.getProperty("User_ID") === this.controller.getMyId();
-      this.controller.byId("memberPromote").setVisible(formatter.canToggleAdmin(this.myRole(), role, isMe));
-      this.controller.byId("memberRemove").setVisible(formatter.canRemoveMember(this.myRole(), role, isMe));
+      const menu = this.controller.byId("memberMenu");
+      const allowed = [formatter.canToggleAdmin(this.myRole(), role, isMe) ? this.controller.byId("memberPromote") : undefined, formatter.canRemoveMember(this.myRole(), role, isMe) ? this.controller.byId("memberRemove") : undefined];
+      this.memberMenuItems ??= new MenuItemSync(menu);
+      this.memberMenuItems.sync(item => allowed.includes(item));
     }
     async toggleAdmin(context) {
       const role = context.getProperty("Role") === "Admin" ? "Member" : "Admin";

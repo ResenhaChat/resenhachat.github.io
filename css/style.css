@@ -10,7 +10,7 @@ html:root {
     --rs-brand-strong: #0857C9;
     --rs-gradient: linear-gradient(135deg, #0857C9 0%, #0A6CF5 55%, #1679E0 100%);
     --rs-gradient-strong: linear-gradient(135deg, var(--rs-brand-strong) 0%, var(--rs-brand) 100%);
-    --rs-focus-ring: 0 0 0 3px color-mix(in srgb, var(--rs-brand) 25%, transparent);
+    --rs-focus-ring: 0 0 0 3px color-mix(in srgb, var(--rs-brand) 45%, transparent);
     --rs-radius-sm: 10px;
     --rs-radius: 16px;
     --rs-radius-lg: 22px;
@@ -245,6 +245,11 @@ body {
     border-radius: 50%;
 }
 
+.rsRoundBtn.sapMBtn .sapMBtnIcon,
+.rsRoundBtn.sapMBtn .sapMBtnContent {
+    color: inherit;
+}
+
 .rsRoundBtn.sapMBtn .sapMBtnInner {
     width: 100%;
     padding: 0;
@@ -271,7 +276,9 @@ body {
     box-shadow: 0 10px 22px color-mix(in srgb, var(--rs-brand) 40%, transparent);
 }
 
-.rsGhostBtn.sapMBtn .sapMBtnInner {
+.rsGhostBtn.sapMBtn .sapMBtnInner,
+.rsGhostBtn.sapMBtn .sapMBtnIcon,
+.rsGhostBtn.sapMBtn .sapMBtnContent {
     color: var(--rs-text-2);
 }
 
@@ -1782,14 +1789,16 @@ body {
 }
 
 .rsDetailsScroll {
+    flex: 1 1 auto;
     min-height: 0;
+    overflow-y: auto;
 }
 
 .rsDetailsBody {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    padding: 1rem;
+    padding: 1rem 1rem calc(2rem + env(safe-area-inset-bottom));
     box-sizing: border-box;
 }
 
@@ -2073,4 +2082,84 @@ body {
 /* Avatar clicável (menu do usuário): anel de foco só na navegação por teclado */
 .rsMeAvatar.sapFAvatar:focus:not(:focus-visible) {
     outline: none;
+}
+
+/* ---------- Menus no celular: o sap.m.Menu vira dialogo em tela cheia; aqui vira bottom sheet compacto ---------- */
+.sapMDialog.sapMMenu,
+.sapMDialog.sapMMenu .sapMLIB,
+.sapMDialog.sapMMenu .sapMBtn {
+    font-family: var(--rs-font);
+}
+
+.sapMDialog.sapMMenu.sapMDialogPhone {
+    top: auto !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 70vh !important;
+    padding-top: 0 !important;
+    box-sizing: border-box;
+    overflow: hidden;
+    border-radius: var(--rs-radius-lg) var(--rs-radius-lg) 0 0;
+    background: var(--rs-surface);
+    box-shadow: var(--rs-shadow);
+}
+
+.sapMDialog.sapMMenu.sapMDialogPhone .sapMDialogHeader {
+    display: none;
+}
+
+.sapMDialog.sapMMenu.sapMDialogPhone .sapMDialogSection {
+    padding: 0.5rem 0.5rem 0;
+    background: transparent;
+}
+
+.sapMDialog.sapMMenu.sapMDialogPhone .sapMMenuItem {
+    min-height: 3rem;
+    border-radius: var(--rs-radius-sm);
+    color: var(--rs-text);
+    background: transparent;
+}
+
+.sapMDialog.sapMMenu.sapMDialogPhone .sapMMenuItem:hover,
+.sapMDialog.sapMMenu.sapMDialogPhone .sapMMenuItem:active {
+    background: var(--rs-surface-2);
+    color: var(--rs-text);
+}
+
+.sapMDialog.sapMMenu.sapMDialogPhone .sapMMenuItem .sapUiIcon {
+    color: var(--rs-text-2);
+}
+
+.sapMDialog.sapMMenu.sapMDialogPhone .sapMDialogFooter {
+    height: auto;
+    padding: 0.25rem 0.75rem 0.75rem;
+    border: 0;
+    background: transparent;
+}
+
+.sapMDialog.sapMMenu.sapMDialogPhone .sapMDialogFooter .sapMIBar.sapMTB {
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+}
+
+.sapMDialog.sapMMenu.sapMDialogPhone .sapMDialogFooter .sapMBtn {
+    --sapContent_FocusColor: transparent;
+}
+
+.sapMDialog.sapMMenu.sapMDialogPhone .sapMDialogFooter .sapMBtn .sapMBtnInner.sapMBtnDefault {
+    min-width: 0;
+    height: 2.5rem;
+    border: 0;
+    border-radius: 12px;
+    color: var(--rs-text-2);
+    background: var(--rs-surface-2);
+}
+
+.sapMDialog.sapMMenu.sapMDialogPhone .sapMMenuItem + .sapMMenuItem.sapMMenuItemSeparator,
+.sapMDialog.sapMMenu.sapMDialogPhone .sapMMenuItemSeparator {
+    border-color: var(--rs-border);
 }

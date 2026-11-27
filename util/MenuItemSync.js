@@ -1,0 +1,2 @@
+sap.ui.define([],function(){"use strict";class t{constructor(t){this.menu=t;this.items=t.getItems()}sync(t){this.menu.removeAllItems();this.items.filter(t).forEach(t=>this.menu.addItem(t))}destroy(){this.items.filter(t=>t.getParent()!==this.menu).forEach(t=>t.destroy())}}return t});
+//# sourceMappingURL=MenuItemSync.js.map

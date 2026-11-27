@@ -6,6 +6,8 @@ import type { MenuItem$PressEvent } from "sap/m/MenuItem";
 import type Context from "sap/ui/model/odata/v4/Context";
 import type Chat from "../Chat.controller";
 import { MEMBERSHIP_GROUP } from "../../service/ChatService";
+import formatter from "../../model/formatter";
+import MenuItemSync from "../../util/MenuItemSync";
 
 const HOUR_MS = 3_600_000;
 const WEEK_MS = 7 * 24 * HOUR_MS;
@@ -27,14 +29,25 @@ function mutedUntil(duration: MuteDuration): string {
  */
 export default class ConversationActionsSection {
 
+    private rowMenuItems?: MenuItemSync;
+    private muteMenuItems?: MenuItemSync;
+
     public constructor(private readonly controller: Chat) { }
+
+    public destroy(): void {
+        this.rowMenuItems?.destroy();
+        this.muteMenuItems?.destroy();
+    }
 
     /** O menu recebe o contexto da linha do botão; os itens herdam esse contexto. */
     public onOpenRowMenu = (event: Event): void => {
         const button = event.getSource<Control>();
         const menu = this.controller.byId("rowMenu") as Menu;
+        const context = button.getBindingContext() as Context;
 
-        menu.setBindingContext(button.getBindingContext() as Context);
+        menu.setBindingContext(context);
+        this.rowMenuItems ??= new MenuItemSync(menu);
+        this.rowMenuItems.sync((item) => this.isVisibleInRowMenu(item, context));
         menu.openBy(button);
     };
 
@@ -42,8 +55,11 @@ export default class ConversationActionsSection {
     public onOpenMuteMenu = (event: Event): void => {
         const button = event.getSource<Control>();
         const menu = this.controller.byId("muteMenu") as Menu;
+        const context = button.getBindingContext() as Context;
 
-        menu.setBindingContext(button.getBindingContext() as Context);
+        menu.setBindingContext(context);
+        this.muteMenuItems ??= new MenuItemSync(menu);
+        this.muteMenuItems.sync((item) => this.isVisibleInMuteMenu(item, context));
         menu.openBy(button);
     };
 
@@ -91,6 +107,21 @@ export default class ConversationActionsSection {
             model.resetChanges(MEMBERSHIP_GROUP);
             await this.controller.handleError(error, "conversationActionError");
         }
+    }
+
+    /** "Silenciar" só quando não está silenciada; "Reativar som" só quando está. */
+    private isVisibleInRowMenu(item: MenuItem, context: Context): boolean {
+        const muted = formatter.isMuted(context.getProperty("MutedUntil") as string | null);
+
+        if (item === this.controller.byId("rowMenuMute")) {
+            return !muted;
+        }
+
+        return item !== this.controller.byId("rowMenuUnmute") || muted;
+    }
+
+    private isVisibleInMuteMenu(item: MenuItem, context: Context): boolean {
+        return item !== this.controller.byId("muteMenuUnmute") || formatter.isMuted(context.getProperty("MutedUntil") as string | null);
     }
 
     private contextOf(event: MenuItem$PressEvent): Context {
