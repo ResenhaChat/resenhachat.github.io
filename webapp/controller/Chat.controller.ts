@@ -18,6 +18,7 @@ import ExploreChannelsSection from "./chat/ExploreChannelsSection";
 import MembersSection from "./chat/MembersSection";
 import DetailsSection from "./chat/DetailsSection";
 import MediaSection from "./chat/MediaSection";
+import PdfViewerSection from "./chat/PdfViewerSection";
 import { isUnauthorized } from "../util/errors";
 
 const MOBILE_LIST = "list";
@@ -57,6 +58,8 @@ export default class Chat extends BaseController {
 
     public readonly media = new MediaSection(this);
 
+    public readonly pdfViewer = new PdfViewerSection(this);
+
     private lastUnauthorizedRetry = 0;
 
     public onInit(): void {
@@ -88,6 +91,7 @@ export default class Chat extends BaseController {
         this.explore.destroy();
         this.members.destroy();
         this.media.destroy();
+        this.pdfViewer.destroy();
     }
 
     /** Lista de conversas carregada: atualiza o contador de não lidas (título e selo) e trata o 401. */

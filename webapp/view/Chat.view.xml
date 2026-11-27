@@ -255,16 +255,22 @@
                                                     visible="{parts: [{path: 'Kind', targetType: 'any'}, {path: 'DeletedAt', targetType: 'any'}], formatter: '.formatter.isVideoMessage'}"
                                                     text="{path: 'Attachment/DurationSeconds', targetType: 'any', formatter: '.formatter.durationLabel'}" />
                                             </VBox>
-                                            <HBox class="rsMediaFile" renderType="Bare" alignItems="Center"
+                                            <VBox class="rsMediaDoc" renderType="Bare"
                                                 visible="{parts: [{path: 'Kind', targetType: 'any'}, {path: 'DeletedAt', targetType: 'any'}], formatter: '.formatter.isFileMessage'}">
-                                                <core:Icon src="{path: 'Attachment/MimeType', targetType: 'any', formatter: '.formatter.fileIcon'}" decorative="true" class="rsMediaFileIcon" />
-                                                <VBox class="rsMediaFileBody" renderType="Bare">
-                                                    <Text text="{Attachment/FileName}" maxLines="1" class="rsMediaFileName" />
-                                                    <Text text="{path: 'Attachment/Size', targetType: 'any', formatter: '.formatter.fileSize'}" class="rsMediaFileSize" />
-                                                </VBox>
-                                                <Button icon="sap-icon://download" type="Transparent" class="rsRoundBtn rsMediaDownload"
-                                                    tooltip="{i18n>download}" press=".media.onDownload" />
-                                            </HBox>
+                                                <Image class="rsMediaThumb" densityAware="false" alt="{i18n>openPdf}" press=".media.onOpenViewer"
+                                                    visible="{path: 'Attachment/ThumbnailMimeType', targetType: 'any', formatter: '.formatter.hasThumbnail'}"
+                                                    src="{parts: [{path: 'Attachment/ID', targetType: 'any'}, {path: 'Attachment/ThumbnailMimeType', targetType: 'any'}, {path: 'Kind', targetType: 'any'}, {path: 'session>/mediaToken'}], formatter: '.formatter.attachmentThumbSrc'}"
+                                                    width="{parts: [{path: 'Attachment/Width', targetType: 'any'}, {path: 'Attachment/Height', targetType: 'any'}], formatter: '.formatter.mediaWidth'}" />
+                                                <HBox class="rsMediaFile rsMediaFileRow" renderType="Bare" alignItems="Center">
+                                                    <core:Icon src="{path: 'Attachment/MimeType', targetType: 'any', formatter: '.formatter.fileIcon'}" decorative="true" class="rsMediaFileIcon" />
+                                                    <VBox class="rsMediaFileBody" renderType="Bare">
+                                                        <Text text="{Attachment/FileName}" maxLines="1" class="rsMediaFileName" />
+                                                        <Text text="{path: 'Attachment/Size', targetType: 'any', formatter: '.formatter.fileSize'}" class="rsMediaFileSize" />
+                                                    </VBox>
+                                                    <Button icon="sap-icon://download" type="Transparent" class="rsRoundBtn rsMediaDownload"
+                                                        tooltip="{i18n>download}" press=".media.onDownload" />
+                                                </HBox>
+                                            </VBox>
                                         </VBox>
                                         <Text class="rsText"
                                             text="{parts: [{path: 'Text', targetType: 'any'}, {path: 'DeletedAt', targetType: 'any'}], formatter: '.formatter.messageText'}" />
