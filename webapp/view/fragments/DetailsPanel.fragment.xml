@@ -77,14 +77,14 @@
                         <Text text="@{Username}" class="rsDetailsMeta" />
                         <Text class="rsPeerStatus"
                             text="{parts: [{path: 'ID', targetType: 'any'}, {path: 'presence>/online'}, {path: 'LastSeenAt', targetType: 'any'}], formatter: '.formatter.peerStatus'}" />
-                        <Text text="{About}" maxLines="3" class="rsPeerAbout" visible="{= !!${About} }" />
+                        <Text text="{About}" maxLines="3" class="rsPeerAbout" visible="{= !!${path: 'About', targetType: 'any'} }" />
                     </VBox>
                 </VBox>
 
                 <VBox class="rsDetailsSection" renderType="Bare" visible="{path: 'Kind', targetType: 'any', formatter: '.formatter.isGroupLike'}">
                     <HBox class="rsSectionHead" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
                         <Title text="{i18n>membersTitle}" titleStyle="H5" />
-                        <Button id="addPeopleButton" text="{i18n>addPeople}" icon="sap-icon://add-personnel" type="Transparent"
+                        <Button id="addPeopleButton" text="{i18n>addPeople}" icon="sap-icon://add-employee" type="Transparent"
                             class="rsGhostBtn" press=".members.onAddPeople"
                             visible="{path: 'MyRole', targetType: 'any', formatter: '.formatter.isManager'}" />
                     </HBox>
@@ -118,7 +118,7 @@
                 <HBox id="detailsFooter" class="rsDetailsFooter" renderType="Bare" wrap="Wrap" justifyContent="Center">
                     <Button id="detailsMuteButton" icon="sap-icon://sound-off" type="Transparent" class="rsGhostBtn"
                         text="{path: 'MutedUntil', targetType: 'any', formatter: '.formatter.muteLabel'}" press=".actions.onOpenMuteMenu" />
-                    <Button id="detailsArchiveButton" icon="sap-icon://archive" type="Transparent" class="rsGhostBtn"
+                    <Button id="detailsArchiveButton" icon="sap-icon://inbox" type="Transparent" class="rsGhostBtn"
                         text="{path: 'IsArchived', targetType: 'any', formatter: '.formatter.archiveLabel'}" press=".details.onToggleArchive" />
                 </HBox>
                 <HBox class="rsDetailsFooter" renderType="Bare" justifyContent="Center"

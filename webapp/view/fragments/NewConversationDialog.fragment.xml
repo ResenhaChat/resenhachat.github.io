@@ -11,7 +11,7 @@
                     liveChange=".onNameChange" submit=".onSave" class="rsAuthField" />
                 <Label text="{i18n>fieldDescription}" labelFor="conversationDescription" />
                 <TextArea id="conversationDescription" value="{compose>/description}" rows="2" maxLength="500"
-                    showExceededText="true" width="100%" />
+                    showExceededText="true" width="100%" class="rsProfileAbout" />
 
                 <VBox class="rsDetailsSwitches" renderType="Bare" visible="{= ${compose>/kind} === 'Channel' }">
                     <HBox class="rsSwitchRow" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">

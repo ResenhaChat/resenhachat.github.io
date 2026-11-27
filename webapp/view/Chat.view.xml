@@ -66,7 +66,7 @@
             </HBox>
 
             <HBox class="rsListTools" renderType="Bare" alignItems="Center" justifyContent="End">
-                <Button id="archivedToggle" class="rsArchiveToggle" type="Transparent" icon="sap-icon://archive"
+                <Button id="archivedToggle" class="rsArchiveToggle" type="Transparent" icon="sap-icon://inbox"
                     text="{path: 'ui>/showArchived', formatter: '.formatter.archivedToggleLabel'}"
                     press=".conversations.onToggleArchived">
                     <customData>
@@ -304,7 +304,7 @@
                 </MenuItem>
                 <MenuItem id="rowMenuUnmute" text="{i18n>unmuteConversation}" icon="sap-icon://sound"
                     visible="{path: 'MutedUntil', targetType: 'any', formatter: '.formatter.isMuted'}" press=".actions.onUnmute" />
-                <MenuItem id="rowMenuArchive" text="{path: 'IsArchived', targetType: 'any', formatter: '.formatter.archiveLabel'}" icon="sap-icon://archive"
+                <MenuItem id="rowMenuArchive" text="{path: 'IsArchived', targetType: 'any', formatter: '.formatter.archiveLabel'}" icon="sap-icon://inbox"
                     startsSection="true" press=".actions.onToggleArchive" />
             </Menu>
 
