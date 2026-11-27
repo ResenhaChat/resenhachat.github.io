@@ -1,4 +1,4 @@
-sap.ui.define(["sap/base/security/encodeXML", "../../model/formatter", "../../util/pickFile", "../../util/mediaTools", "../../util/errors"], function (encodeXML, __formatter, ____util_pickFile, ____util_mediaTools, ____util_errors) {
+sap.ui.define(["sap/base/security/encodeXML", "../../model/formatter", "../../util/pickFile", "../../util/download", "../../util/mediaTools", "../../util/errors"], function (encodeXML, __formatter, ____util_pickFile, ____util_download, ____util_mediaTools, ____util_errors) {
   "use strict";
 
   function _interopRequireDefault(obj) {
@@ -6,10 +6,12 @@ sap.ui.define(["sap/base/security/encodeXML", "../../model/formatter", "../../ut
   }
   const formatter = _interopRequireDefault(__formatter);
   const pickFile = ____util_pickFile["pickFile"];
+  const downloadFile = ____util_download["downloadFile"];
   const MEDIA_ACCEPT = ____util_mediaTools["MEDIA_ACCEPT"];
   const inspectVideo = ____util_mediaTools["inspectVideo"];
   const kindOf = ____util_mediaTools["kindOf"];
   const prepareImage = ____util_mediaTools["prepareImage"];
+  const renderPdfThumbnail = ____util_mediaTools["renderPdfThumbnail"];
   const validateName = ____util_mediaTools["validateName"];
   const validateSize = ____util_mediaTools["validateSize"];
   const isAbortError = ____util_errors["isAbortError"];
@@ -20,11 +22,13 @@ sap.ui.define(["sap/base/security/encodeXML", "../../model/formatter", "../../ut
     mimeType: "",
     size: 0,
     previewUrl: "",
+    thumbUrl: "",
     videoHtml: "",
     caption: "",
     uploading: false,
     progress: 0
   };
+  const PDF_MIME = "application/pdf";
 
   /**
    * Anexos do composer: botão de anexo, colar imagem, arrastar e soltar sobre a área de mensagens, prévia com legenda
@@ -114,6 +118,7 @@ sap.ui.define(["sap/base/security/encodeXML", "../../model/formatter", "../../ut
       this.discardPending();
       this.patchPreview({
         previewUrl: "",
+        thumbUrl: "",
         videoHtml: "",
         caption: "",
         uploading: false,
@@ -124,6 +129,10 @@ sap.ui.define(["sap/base/security/encodeXML", "../../model/formatter", "../../ut
       const attachment = this.attachmentOf(event.getSource().getBindingContext()?.getObject());
       const url = attachment ? formatter.attachmentUrl(attachment.ID, "Content", this.mediaToken()) : undefined;
       if (!attachment || !url) {
+        return;
+      }
+      if (attachment.Kind === "File") {
+        await this.controller.pdfViewer.open(url, attachment.FileName, formatter.attachmentDownloadUrl(attachment.ID, this.mediaToken()) ?? url);
         return;
       }
       const viewer = await this.getViewerDialog();
@@ -140,14 +149,14 @@ sap.ui.define(["sap/base/security/encodeXML", "../../model/formatter", "../../ut
       const attachment = this.attachmentOf(event.getSource().getBindingContext()?.getObject());
       const url = attachment ? formatter.attachmentDownloadUrl(attachment.ID, this.mediaToken()) : undefined;
       if (attachment && url) {
-        this.download(url, attachment.FileName);
+        downloadFile(url, attachment.FileName);
       }
     };
     onDownloadViewed = () => {
       const model = this.viewerDialog?.getModel("compose");
       const url = model?.getProperty("/downloadUrl");
       if (url) {
-        this.download(url, model?.getProperty("/fileName"));
+        downloadFile(url, model?.getProperty("/fileName"));
       }
     };
     onCloseViewer = () => {
@@ -220,7 +229,8 @@ sap.ui.define(["sap/base/security/encodeXML", "../../model/formatter", "../../ut
         this.controller.showToast(sizeIssue.key, sizeIssue.parameters);
         return;
       }
-      const previewUrl = prepared.kind === "File" ? null : URL.createObjectURL(prepared.body);
+      const previewUrl = prepared.kind === "Image" || prepared.kind === "Video" ? URL.createObjectURL(prepared.body) : null;
+      const thumbnailUrl = prepared.kind === "File" && prepared.thumbnail ? URL.createObjectURL(prepared.thumbnail) : null;
       this.discardPending();
       this.pending = {
         conversationId: this.controller.getOpenConversationId(),
@@ -234,7 +244,8 @@ sap.ui.define(["sap/base/security/encodeXML", "../../model/formatter", "../../ut
           durationSeconds: prepared.durationSeconds
         },
         thumbnail: prepared.thumbnail,
-        previewUrl
+        previewUrl,
+        thumbnailUrl
       };
       const dialog = await this.getPreviewDialog();
       this.patchPreview({
@@ -243,6 +254,7 @@ sap.ui.define(["sap/base/security/encodeXML", "../../model/formatter", "../../ut
         mimeType: prepared.mimeType,
         size: prepared.body.size,
         previewUrl: previewUrl ?? "",
+        thumbUrl: thumbnailUrl ?? "",
         videoHtml: prepared.kind === "Video" && previewUrl ? this.videoHtml(previewUrl, false) : "",
         caption: "",
         uploading: false,
@@ -262,6 +274,15 @@ sap.ui.define(["sap/base/security/encodeXML", "../../model/formatter", "../../ut
           width: image.width,
           height: image.height
         } : null;
+      }
+      if (kind === "File" && file.type === PDF_MIME) {
+        const pdf = await renderPdfThumbnail(file);
+        return {
+          body: file,
+          mimeType: file.type,
+          kind,
+          thumbnail: pdf.thumbnail
+        };
       }
       if (kind === "Video") {
         const video = await inspectVideo(file);
@@ -315,17 +336,12 @@ sap.ui.define(["sap/base/security/encodeXML", "../../model/formatter", "../../ut
       this.uploadAbort = undefined;
     }
     discardPending() {
-      if (this.pending?.previewUrl) {
-        URL.revokeObjectURL(this.pending.previewUrl);
-      }
+      [this.pending?.previewUrl, this.pending?.thumbnailUrl].forEach(url => {
+        if (url) {
+          URL.revokeObjectURL(url);
+        }
+      });
       this.pending = null;
-    }
-    download(url, fileName) {
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = fileName;
-      link.rel = "noopener";
-      link.click();
     }
     attachmentOf(row) {
       return row?.Attachment ?? undefined;

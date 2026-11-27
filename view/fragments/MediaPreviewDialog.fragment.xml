@@ -11,6 +11,7 @@
                         visible="{= ${compose>/kind} === 'Image' }" />
                     <!-- sanitizeContent desligado: o sanitizer do core:HTML tiraria o src do video; o HTML é nosso e a URL passa por encodeXML. -->
                     <core:HTML content="{compose>/videoHtml}" sanitizeContent="false" class="rsPreviewVideo" visible="{= ${compose>/kind} === 'Video' }" />
+                    <Image src="{compose>/thumbUrl}" densityAware="false" width="100%" class="rsPreviewImage rsPreviewThumb" visible="{= !!${compose>/thumbUrl} }" />
                     <HBox class="rsMediaFile rsPreviewFile" renderType="Bare" alignItems="Center" visible="{= ${compose>/kind} === 'File' }">
                         <core:Icon src="{path: 'compose>/mimeType', formatter: '.formatter.fileIcon'}" decorative="true" class="rsMediaFileIcon" />
                         <VBox class="rsMediaFileBody" renderType="Bare">

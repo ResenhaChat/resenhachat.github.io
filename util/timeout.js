@@ -1,0 +1,2 @@
+sap.ui.define([],function(){"use strict";function e(e,t){let i=0;const r=new Promise((e,r)=>{i=window.setTimeout(()=>r(new Error("timeout")),t)});return Promise.race([e,r]).finally(()=>window.clearTimeout(i))}var t={__esModule:true};t.withTimeout=e;return t});
+//# sourceMappingURL=timeout.js.map

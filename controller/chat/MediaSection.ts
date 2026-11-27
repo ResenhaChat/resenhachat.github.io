@@ -11,7 +11,8 @@ import encodeXML from "sap/base/security/encodeXML";
 import type Chat from "../Chat.controller";
 import formatter from "../../model/formatter";
 import { pickFile } from "../../util/pickFile";
-import { MEDIA_ACCEPT, inspectVideo, kindOf, prepareImage, validateName, validateSize } from "../../util/mediaTools";
+import { downloadFile } from "../../util/download";
+import { MEDIA_ACCEPT, inspectVideo, kindOf, prepareImage, renderPdfThumbnail, validateName, validateSize } from "../../util/mediaTools";
 import type { MediaKind } from "../../util/mediaTools";
 import { isAbortError, isUnauthorized } from "../../util/errors";
 import type MediaService from "../../service/MediaService";
@@ -42,6 +43,7 @@ interface PendingUpload {
     meta: Omit<UploadMeta, "conversationId" | "size">;
     thumbnail: Blob | null;
     previewUrl: string | null;
+    thumbnailUrl: string | null;
 }
 
 interface PreparedFile {
@@ -54,7 +56,8 @@ interface PreparedFile {
     durationSeconds?: number;
 }
 
-const EMPTY_PREVIEW = { kind: "File", fileName: "", mimeType: "", size: 0, previewUrl: "", videoHtml: "", caption: "", uploading: false, progress: 0 };
+const EMPTY_PREVIEW = { kind: "File", fileName: "", mimeType: "", size: 0, previewUrl: "", thumbUrl: "", videoHtml: "", caption: "", uploading: false, progress: 0 };
+const PDF_MIME = "application/pdf";
 
 /**
  * Anexos do composer: botão de anexo, colar imagem, arrastar e soltar sobre a área de mensagens, prévia com legenda
@@ -160,7 +163,7 @@ export default class MediaSection {
     public onPreviewClosed = (): void => {
         this.abortUpload();
         this.discardPending();
-        this.patchPreview({ previewUrl: "", videoHtml: "", caption: "", uploading: false, progress: 0 });
+        this.patchPreview({ previewUrl: "", thumbUrl: "", videoHtml: "", caption: "", uploading: false, progress: 0 });
     };
 
     public onOpenViewer = async (event: Image$PressEvent): Promise<void> => {
@@ -168,6 +171,11 @@ export default class MediaSection {
         const url = attachment ? formatter.attachmentUrl(attachment.ID, "Content", this.mediaToken()) : undefined;
 
         if (!attachment || !url) {
+            return;
+        }
+
+        if (attachment.Kind === "File") {
+            await this.controller.pdfViewer.open(url, attachment.FileName, formatter.attachmentDownloadUrl(attachment.ID, this.mediaToken()) ?? url);
             return;
         }
 
@@ -188,7 +196,7 @@ export default class MediaSection {
         const url = attachment ? formatter.attachmentDownloadUrl(attachment.ID, this.mediaToken()) : undefined;
 
         if (attachment && url) {
-            this.download(url, attachment.FileName);
+            downloadFile(url, attachment.FileName);
         }
     };
 
@@ -197,7 +205,7 @@ export default class MediaSection {
         const url = model?.getProperty("/downloadUrl") as string | undefined;
 
         if (url) {
-            this.download(url, model?.getProperty("/fileName") as string);
+            downloadFile(url, model?.getProperty("/fileName") as string);
         }
     };
 
@@ -286,7 +294,8 @@ export default class MediaSection {
             return;
         }
 
-        const previewUrl = prepared.kind === "File" ? null : URL.createObjectURL(prepared.body);
+        const previewUrl = prepared.kind === "Image" || prepared.kind === "Video" ? URL.createObjectURL(prepared.body) : null;
+        const thumbnailUrl = prepared.kind === "File" && prepared.thumbnail ? URL.createObjectURL(prepared.thumbnail) : null;
 
         this.discardPending();
         this.pending = {
@@ -301,7 +310,8 @@ export default class MediaSection {
                 durationSeconds: prepared.durationSeconds
             },
             thumbnail: prepared.thumbnail,
-            previewUrl
+            previewUrl,
+            thumbnailUrl
         };
 
         const dialog = await this.getPreviewDialog();
@@ -312,6 +322,7 @@ export default class MediaSection {
             mimeType: prepared.mimeType,
             size: prepared.body.size,
             previewUrl: previewUrl ?? "",
+            thumbUrl: thumbnailUrl ?? "",
             videoHtml: prepared.kind === "Video" && previewUrl ? this.videoHtml(previewUrl, false) : "",
             caption: "",
             uploading: false,
@@ -327,6 +338,12 @@ export default class MediaSection {
             const image = await prepareImage(file);
 
             return image ? { body: image.blob, mimeType: image.mimeType, kind, thumbnail: null, width: image.width, height: image.height } : null;
+        }
+
+        if (kind === "File" && file.type === PDF_MIME) {
+            const pdf = await renderPdfThumbnail(file);
+
+            return { body: file, mimeType: file.type, kind, thumbnail: pdf.thumbnail };
         }
 
         if (kind === "Video") {
@@ -382,20 +399,13 @@ export default class MediaSection {
     }
 
     private discardPending(): void {
-        if (this.pending?.previewUrl) {
-            URL.revokeObjectURL(this.pending.previewUrl);
-        }
+        [this.pending?.previewUrl, this.pending?.thumbnailUrl].forEach((url) => {
+            if (url) {
+                URL.revokeObjectURL(url);
+            }
+        });
 
         this.pending = null;
-    }
-
-    private download(url: string, fileName: string): void {
-        const link = document.createElement("a");
-
-        link.href = url;
-        link.download = fileName;
-        link.rel = "noopener";
-        link.click();
     }
 
     private attachmentOf(row: unknown): AttachmentRow | undefined {

@@ -1,0 +1,2 @@
+sap.ui.define([],function(){"use strict";function e(e,n){const o=document.createElement("a");o.href=e;o.download=n;o.rel="noopener";o.click()}var n={__esModule:true};n.downloadFile=e;return n});
+//# sourceMappingURL=download.js.map

@@ -14,7 +14,7 @@ const MB = KB * KB;
 const SECONDS_PER_MINUTE = 60;
 const MEDIA_MAX_WIDTH = 280;
 const MEDIA_MAX_HEIGHT = 360;
-const MEDIA_FALLBACK = { width: 240, height: 180 };
+const MEDIA_FALLBACK = { width: 280, height: 210 };
 const FILE_ICON_RULES: [RegExp, string][] = [
     [/^video\//, "sap-icon://video"],
     [/^image\//, "sap-icon://attachment-photo"],
@@ -478,6 +478,11 @@ const formatter = {
     /** Só a largura: a altura segue a proporção da imagem (height auto no CSS), sem distorcer em 375 px. */
     mediaWidth(width: number | null | undefined, height: number | null | undefined): string {
         return `${mediaBox(width, height).width}px`;
+    },
+
+    /** Arquivo com miniatura (PDF da 1ª página): mostra a imagem no cartão. */
+    hasThumbnail(thumbnailMimeType: string | null | undefined): boolean {
+        return !!thumbnailMimeType;
     },
 
     /** Download forçado (Content-Disposition: attachment), serve também para cross-origin. */

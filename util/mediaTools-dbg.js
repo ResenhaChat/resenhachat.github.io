@@ -1,7 +1,9 @@
-sap.ui.define(["./pickFile"], function (___pickFile) {
+sap.ui.define(["./pickFile", "./pdfjs", "./timeout"], function (___pickFile, ___pdfjs, ___timeout) {
   "use strict";
 
   const pickFile = ___pickFile["pickFile"];
+  const loadPdfJs = ___pdfjs["loadPdfJs"];
+  const withTimeout = ___timeout["withTimeout"];
   /** Medidas sem o que não puder ser lido; thumbnail null quando o frame não pôde ser capturado. */
   const IMAGE_ACCEPT = "image/jpeg,image/png,image/webp,image/gif";
   const MEDIA_ACCEPT = `${IMAGE_ACCEPT},video/mp4,video/webm,video/quicktime`;
@@ -39,19 +41,14 @@ sap.ui.define(["./pickFile"], function (___pickFile) {
     quality: 0.5
   }];
   const MEDIA_STEP_TIMEOUT_MS = 8000;
+  const PDF_THUMBNAIL_MAX_WIDTH = 400;
+  const PDF_THUMBNAIL_TIMEOUT_MS = 10_000;
   async function decode(file) {
     try {
       return await createImageBitmap(file);
     } catch {
       return null;
     }
-  }
-  function withTimeout(pending, ms) {
-    let timer = 0;
-    const timeout = new Promise((_, reject) => {
-      timer = window.setTimeout(() => reject(new Error("timeout")), ms);
-    });
-    return Promise.race([pending, timeout]).finally(() => window.clearTimeout(timer));
   }
   function onceEvent(target, type) {
     return new Promise((resolve, reject) => {
@@ -243,6 +240,64 @@ sap.ui.define(["./pickFile"], function (___pickFile) {
     const file = await pickFile(AVATAR_ACCEPT);
     return file ? cropAvatar(file) : null;
   }
+
+  /** Primeira página do PDF em até 400 px de largura (jpeg, até 300 KB). Falha ou timeout: thumbnail null, o PDF segue. */
+  async function renderPdfThumbnail(file) {
+    try {
+      return await withTimeout(buildPdfThumbnail(file), PDF_THUMBNAIL_TIMEOUT_MS);
+    } catch {
+      return {
+        thumbnail: null
+      };
+    }
+  }
+  async function withDocument(pdf, action) {
+    try {
+      return await action(pdf);
+    } finally {
+      await pdf.destroy();
+    }
+  }
+  async function buildPdfThumbnail(file) {
+    const pdfjs = await loadPdfJs();
+    const task = pdfjs.getDocument({
+      data: new Uint8Array(await file.arrayBuffer()),
+      isEvalSupported: false,
+      disableRange: true,
+      disableStream: true,
+      disableAutoFetch: true
+    });
+    return withDocument(await task.promise, async pdf => {
+      const page = await pdf.getPage(1);
+      const base = page.getViewport({
+        scale: 1
+      });
+      const viewport = page.getViewport({
+        scale: Math.min(1, PDF_THUMBNAIL_MAX_WIDTH / base.width)
+      });
+      const width = Math.round(viewport.width);
+      const height = Math.round(viewport.height);
+
+      // eslint-disable-next-line fiori-custom/sap-no-element-creation -- canvas para rasterizar a página do PDF
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      await page.render({
+        canvasContext: canvas.getContext("2d"),
+        viewport
+      }).promise;
+      page.cleanup();
+      return {
+        thumbnail: await renderThumbnail(canvas, {
+          x: 0,
+          y: 0,
+          width,
+          height
+        }, width, height),
+        pages: pdf.numPages
+      };
+    });
+  }
   var __exports = {
     __esModule: true
   };
@@ -256,6 +311,7 @@ sap.ui.define(["./pickFile"], function (___pickFile) {
   __exports.cropAvatar = cropAvatar;
   __exports.inspectVideo = inspectVideo;
   __exports.pickAvatar = pickAvatar;
+  __exports.renderPdfThumbnail = renderPdfThumbnail;
   return __exports;
 });
 //# sourceMappingURL=mediaTools-dbg.js.map

@@ -1,4 +1,7 @@
 import { pickFile } from "./pickFile";
+import { loadPdfJs } from "./pdfjs";
+import type { PdfDocument } from "./pdfjs";
+import { withTimeout } from "./timeout";
 
 export type MediaKind = "Image" | "Video" | "File";
 
@@ -67,6 +70,13 @@ const THUMBNAIL_ATTEMPTS = [
     { scale: 0.5, quality: 0.5 }
 ];
 const MEDIA_STEP_TIMEOUT_MS = 8000;
+const PDF_THUMBNAIL_MAX_WIDTH = 400;
+const PDF_THUMBNAIL_TIMEOUT_MS = 10_000;
+
+export interface PdfThumbnail {
+    thumbnail: Blob | null;
+    pages?: number;
+}
 
 async function decode(file: Blob): Promise<ImageBitmap | null> {
     try {
@@ -74,15 +84,6 @@ async function decode(file: Blob): Promise<ImageBitmap | null> {
     } catch {
         return null;
     }
-}
-
-function withTimeout<Result>(pending: Promise<Result>, ms: number): Promise<Result> {
-    let timer = 0;
-    const timeout = new Promise<never>((_, reject) => {
-        timer = window.setTimeout(() => reject(new Error("timeout")), ms);
-    });
-
-    return Promise.race([pending, timeout]).finally(() => window.clearTimeout(timer));
 }
 
 function onceEvent(target: HTMLMediaElement, type: string): Promise<void> {
@@ -247,4 +248,49 @@ export async function pickAvatar(): Promise<Blob | null> {
     const file = await pickFile(AVATAR_ACCEPT);
 
     return file ? cropAvatar(file) : null;
+}
+
+/** Primeira página do PDF em até 400 px de largura (jpeg, até 300 KB). Falha ou timeout: thumbnail null, o PDF segue. */
+export async function renderPdfThumbnail(file: File): Promise<PdfThumbnail> {
+    try {
+        return await withTimeout(buildPdfThumbnail(file), PDF_THUMBNAIL_TIMEOUT_MS);
+    } catch {
+        return { thumbnail: null };
+    }
+}
+
+async function withDocument<Result>(pdf: PdfDocument, action: (pdf: PdfDocument) => Promise<Result>): Promise<Result> {
+    try {
+        return await action(pdf);
+    } finally {
+        await pdf.destroy();
+    }
+}
+
+async function buildPdfThumbnail(file: File): Promise<PdfThumbnail> {
+    const pdfjs = await loadPdfJs();
+    const task = pdfjs.getDocument({
+        data: new Uint8Array(await file.arrayBuffer()),
+        isEvalSupported: false,
+        disableRange: true,
+        disableStream: true,
+        disableAutoFetch: true
+    });
+
+    return withDocument(await task.promise, async (pdf) => {
+        const page = await pdf.getPage(1);
+        const base = page.getViewport({ scale: 1 });
+        const viewport = page.getViewport({ scale: Math.min(1, PDF_THUMBNAIL_MAX_WIDTH / base.width) });
+        const width = Math.round(viewport.width);
+        const height = Math.round(viewport.height);
+
+        // eslint-disable-next-line fiori-custom/sap-no-element-creation -- canvas para rasterizar a página do PDF
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        await page.render({ canvasContext: canvas.getContext("2d") as CanvasRenderingContext2D, viewport }).promise;
+        page.cleanup();
+
+        return { thumbnail: await renderThumbnail(canvas, { x: 0, y: 0, width, height }, width, height), pages: pdf.numPages };
+    });
 }

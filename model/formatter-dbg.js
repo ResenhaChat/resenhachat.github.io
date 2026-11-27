@@ -11,8 +11,8 @@ sap.ui.define(["sap/ui/core/format/DateFormat", "../auth/RuntimeConfig"], functi
   const MEDIA_MAX_WIDTH = 280;
   const MEDIA_MAX_HEIGHT = 360;
   const MEDIA_FALLBACK = {
-    width: 240,
-    height: 180
+    width: 280,
+    height: 210
   };
   const FILE_ICON_RULES = [[/^video\//, "sap-icon://video"], [/^image\//, "sap-icon://attachment-photo"], [/pdf/, "sap-icon://pdf-attachment"], [/zip|rar|7z|tar|gzip/, "sap-icon://attachment-zip-file"], [/sheet|excel|csv/, "sap-icon://excel-attachment"], [/presentation|powerpoint/, "sap-icon://ppt-attachment"], [/word|opendocument\.text/, "sap-icon://doc-attachment"], [/^text\//, "sap-icon://document-text"]];
   const DEFAULT_FILE_ICON = "sap-icon://document";
@@ -356,6 +356,10 @@ sap.ui.define(["sap/ui/core/format/DateFormat", "../auth/RuntimeConfig"], functi
     /** Só a largura: a altura segue a proporção da imagem (height auto no CSS), sem distorcer em 375 px. */
     mediaWidth(width, height) {
       return `${mediaBox(width, height).width}px`;
+    },
+    /** Arquivo com miniatura (PDF da 1ª página): mostra a imagem no cartão. */
+    hasThumbnail(thumbnailMimeType) {
+      return !!thumbnailMimeType;
     },
     /** Download forçado (Content-Disposition: attachment), serve também para cross-origin. */
     attachmentDownloadUrl(attachmentId, mediaToken) {
