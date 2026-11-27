@@ -288,8 +288,7 @@
             <Menu id="rowMenu">
                 <MenuItem id="rowMenuPin" text="{path: 'IsPinned', targetType: 'any', formatter: '.formatter.pinLabel'}" icon="sap-icon://pushpin-on"
                     press=".actions.onTogglePin" />
-                <MenuItem id="rowMenuMute" text="{i18n>muteConversation}" icon="sap-icon://sound-off" startsSection="true"
-                    visible="{path: 'MutedUntil', targetType: 'any', formatter: '.formatter.notMuted'}">
+                <MenuItem id="rowMenuMute" text="{i18n>muteConversation}" icon="sap-icon://sound-off" startsSection="true">
                     <items>
                         <MenuItem text="{i18n>mute8h}" press=".actions.onMute">
                             <customData><core:CustomData key="duration" value="8h" /></customData>
@@ -303,7 +302,7 @@
                     </items>
                 </MenuItem>
                 <MenuItem id="rowMenuUnmute" text="{i18n>unmuteConversation}" icon="sap-icon://sound"
-                    visible="{path: 'MutedUntil', targetType: 'any', formatter: '.formatter.isMuted'}" press=".actions.onUnmute" />
+                    press=".actions.onUnmute" />
                 <MenuItem id="rowMenuArchive" text="{path: 'IsArchived', targetType: 'any', formatter: '.formatter.archiveLabel'}" icon="sap-icon://inbox"
                     startsSection="true" press=".actions.onToggleArchive" />
             </Menu>
@@ -319,7 +318,7 @@
                     <customData><core:CustomData key="duration" value="forever" /></customData>
                 </MenuItem>
                 <MenuItem id="muteMenuUnmute" text="{i18n>unmuteConversation}" icon="sap-icon://sound" startsSection="true"
-                    visible="{path: 'MutedUntil', targetType: 'any', formatter: '.formatter.isMuted'}" press=".actions.onUnmute" />
+                    press=".actions.onUnmute" />
             </Menu>
 
             <Menu id="memberMenu">

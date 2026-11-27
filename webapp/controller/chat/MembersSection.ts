@@ -16,6 +16,7 @@ import type Context from "sap/ui/model/odata/v4/Context";
 import type Chat from "../Chat.controller";
 import PeoplePicker from "./PeoplePicker";
 import formatter from "../../model/formatter";
+import MenuItemSync from "../../util/MenuItemSync";
 
 /** Índice do botão "⋯" dentro da linha de membro (avatar, corpo, botão). */
 const MEMBER_MENU_BUTTON = 2;
@@ -26,6 +27,7 @@ export default class MembersSection {
     public readonly formatter = formatter;
 
     private dialog?: Dialog;
+    private memberMenuItems?: MenuItemSync;
 
     private picker?: PeoplePicker;
 
@@ -34,6 +36,7 @@ export default class MembersSection {
     public destroy(): void {
         this.picker?.destroy();
         this.dialog?.destroy();
+        this.memberMenuItems?.destroy();
     }
 
     /** Mostra o "⋯" só nas linhas em que há alguma ação para mim (papel do painel + papel do membro). */
@@ -128,8 +131,14 @@ export default class MembersSection {
         const role = context.getProperty("Role") as string;
         const isMe = context.getProperty("User_ID") === this.controller.getMyId();
 
-        (this.controller.byId("memberPromote") as MenuItem).setVisible(formatter.canToggleAdmin(this.myRole(), role, isMe));
-        (this.controller.byId("memberRemove") as MenuItem).setVisible(formatter.canRemoveMember(this.myRole(), role, isMe));
+        const menu = this.controller.byId("memberMenu") as Menu;
+        const allowed = [
+            formatter.canToggleAdmin(this.myRole(), role, isMe) ? this.controller.byId("memberPromote") : undefined,
+            formatter.canRemoveMember(this.myRole(), role, isMe) ? this.controller.byId("memberRemove") : undefined
+        ];
+
+        this.memberMenuItems ??= new MenuItemSync(menu);
+        this.memberMenuItems.sync((item) => allowed.includes(item));
     }
 
     private async toggleAdmin(context: Context): Promise<void> {
