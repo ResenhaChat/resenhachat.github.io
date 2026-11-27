@@ -1,0 +1,132 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+>
+    <VBox id="detailsPanel" class="rsDetails" renderType="Bare" height="100%" visible="{ui>/detailsOpen}">
+        <customData>
+            <core:CustomData key="rs-kind" value="{= ${Kind} || 'None' }" writeToDom="true" />
+        </customData>
+        <HBox class="rsDetailsHead" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+            <Title text="{i18n>detailsTitle}" titleStyle="H4" class="rsDetailsTitle" />
+            <Button id="detailsClose" icon="sap-icon://decline" type="Transparent" tooltip="{i18n>closeDialog}"
+                class="rsRoundBtn" press=".details.onClose" />
+        </HBox>
+
+        <ScrollContainer vertical="true" height="auto" class="rsScroll rsDetailsScroll">
+            <VBox class="rsDetailsBody" renderType="Bare">
+                <VBox class="rsDetailsHero" renderType="Bare" alignItems="Center"
+                    visible="{path: 'Kind', targetType: 'any', formatter: '.formatter.isNotDirect'}">
+                    <Avatar displaySize="XL" class="rsDetailsAvatar"
+                        src="{path: 'Kind', targetType: 'any', formatter: '.formatter.conversationIcon'}"
+                        initials="{path: 'Title', targetType: 'any', formatter: '.formatter.initials'}"
+                        backgroundColor="{path: 'ID', targetType: 'any', formatter: '.formatter.accent'}" />
+                    <Title text="{Title}" titleStyle="H3" class="rsDetailsName" />
+                    <Text text="{path: 'MemberCount', targetType: 'any', formatter: '.formatter.memberCountText'}" class="rsDetailsMeta"
+                        visible="{path: 'Kind', targetType: 'any', formatter: '.formatter.isGroupLike'}" />
+                </VBox>
+
+                <VBox class="rsDetailsSection" renderType="Bare" visible="{path: 'Kind', targetType: 'any', formatter: '.formatter.isNotDirect'}">
+                    <Label text="{i18n>fieldConversationName}" labelFor="detailsName" visible="{parts: [{path: 'MyRole', targetType: 'any'}, {path: 'Kind', targetType: 'any'}], formatter: '.formatter.canEditName'}" />
+                    <Input id="detailsName" value="{Name}" maxLength="80" width="100%" class="rsAuthField"
+                        visible="{parts: [{path: 'MyRole', targetType: 'any'}, {path: 'Kind', targetType: 'any'}], formatter: '.formatter.canEditName'}"
+                        editable="{parts: [{path: 'MyRole', targetType: 'any'}, {path: 'Kind', targetType: 'any'}], formatter: '.formatter.canEditName'}"
+                        change=".details.onFieldChange" />
+                    <Label text="{i18n>fieldDescription}" labelFor="detailsDescription" />
+                    <TextArea id="detailsDescription" value="{Description}" rows="3" maxLength="500" showExceededText="true"
+                        width="100%" class="rsProfileAbout"
+                        editable="{parts: [{path: 'MyRole', targetType: 'any'}, {path: 'Kind', targetType: 'any'}], formatter: '.formatter.canEditDescription'}"
+                        change=".details.onFieldChange" />
+
+                    <VBox class="rsDetailsSwitches" renderType="Bare" visible="{path: 'Kind', targetType: 'any', formatter: '.formatter.isChannel'}">
+                        <HBox class="rsSwitchRow" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                            <VBox renderType="Bare">
+                                <Text text="{i18n>channelPublic}" class="rsSwitchTitle" />
+                                <Text text="{i18n>channelPublicHint}" class="rsHint" />
+                            </VBox>
+                            <Switch id="detailsPublic" state="{IsPublic}"
+                                enabled="{parts: [{path: 'MyRole', targetType: 'any'}, {path: 'Kind', targetType: 'any'}], formatter: '.formatter.canEditSettings'}"
+                                change=".details.onFieldChange" />
+                        </HBox>
+                        <HBox class="rsSwitchRow" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                            <VBox renderType="Bare">
+                                <Text text="{i18n>channelOnlyAdmins}" class="rsSwitchTitle" />
+                                <Text text="{i18n>channelOnlyAdminsHint}" class="rsHint" />
+                            </VBox>
+                            <Switch id="detailsOnlyAdmins" state="{OnlyAdminsCanPost}"
+                                enabled="{parts: [{path: 'MyRole', targetType: 'any'}, {path: 'Kind', targetType: 'any'}], formatter: '.formatter.canEditSettings'}"
+                                change=".details.onFieldChange" />
+                        </HBox>
+                    </VBox>
+
+                    <HBox id="detailsSaveBar" class="rsSaveBar" renderType="Bare" justifyContent="End"
+                        visible="{ui>/detailsDirty}">
+                        <Button id="detailsCancelButton" text="{i18n>cancel}" type="Transparent" class="rsGhostBtn"
+                            press=".details.onCancel" />
+                        <Button id="detailsSaveButton" text="{i18n>save}" type="Emphasized" class="rsGradientBtn"
+                            press=".details.onSave" />
+                    </HBox>
+                </VBox>
+
+                <VBox id="detailsPeerWrap" class="rsDetailsSection" renderType="Bare"
+                    visible="{path: 'Kind', targetType: 'any', formatter: '.formatter.isDirect'}">
+                    <VBox id="detailsPeer" class="rsDetailsHero" renderType="Bare" alignItems="Center">
+                        <Avatar displaySize="XL" class="rsDetailsAvatar"
+                            initials="{path: 'DisplayName', targetType: 'any', formatter: '.formatter.initials'}"
+                            backgroundColor="{path: 'ID', targetType: 'any', formatter: '.formatter.accent'}" />
+                        <Title text="{DisplayName}" titleStyle="H3" class="rsDetailsName" />
+                        <Text text="@{Username}" class="rsDetailsMeta" />
+                        <Text class="rsPeerStatus"
+                            text="{parts: [{path: 'ID', targetType: 'any'}, {path: 'presence>/online'}, {path: 'LastSeenAt', targetType: 'any'}], formatter: '.formatter.peerStatus'}" />
+                        <Text text="{About}" maxLines="3" class="rsPeerAbout" visible="{= !!${About} }" />
+                    </VBox>
+                </VBox>
+
+                <VBox class="rsDetailsSection" renderType="Bare" visible="{path: 'Kind', targetType: 'any', formatter: '.formatter.isGroupLike'}">
+                    <HBox class="rsSectionHead" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                        <Title text="{i18n>membersTitle}" titleStyle="H5" />
+                        <Button id="addPeopleButton" text="{i18n>addPeople}" icon="sap-icon://add-personnel" type="Transparent"
+                            class="rsGhostBtn" press=".members.onAddPeople"
+                            visible="{path: 'MyRole', targetType: 'any', formatter: '.formatter.isManager'}" />
+                    </HBox>
+                    <List id="membersList" showSeparators="None" class="rsMemberList" noDataText="{i18n>noMembers}" growing="true" growingThreshold="30"
+                        updateFinished=".members.onMembersUpdated"
+                        items="{ path: 'Members', parameters: { $expand: 'User($select=ID,DisplayName,Username)', $orderby: 'User/DisplayName' } }">
+                        <CustomListItem type="Inactive" class="rsMemberItem">
+                            <HBox class="rsMemberRow" renderType="Bare" alignItems="Center">
+                                <HBox class="rsAvatarWrap" renderType="Bare">
+                                    <Avatar displaySize="S" initials="{path: 'User/DisplayName', targetType: 'any', formatter: '.formatter.initials'}"
+                                        backgroundColor="{path: 'User_ID', targetType: 'any', formatter: '.formatter.accent'}" />
+                                    <Text class="rsOnlineDot"
+                                        visible="{parts: [{path: 'User_ID', targetType: 'any'}, {path: 'presence>/online'}], formatter: '.formatter.isOnline'}" />
+                                </HBox>
+                                <VBox class="rsMemberBody" renderType="Bare">
+                                    <HBox class="rsMemberNameLine" renderType="Bare" alignItems="Center">
+                                        <Text text="{User/DisplayName}" maxLines="1" class="rsMemberName" />
+                                        <Text class="rsRoleBadge" text="{path: 'Role', targetType: 'any', formatter: '.formatter.roleLabel'}"
+                                            visible="{path: 'Role', targetType: 'any', formatter: '.formatter.hasRoleLabel'}" />
+                                    </HBox>
+                                    <Text text="@{User/Username}" maxLines="1" class="rsMemberHandle" />
+                                </VBox>
+                                <Button class="rsRowMenuBtn" type="Transparent" icon="sap-icon://overflow"
+                                    tooltip="{i18n>memberMenuTooltip}"
+                                    press=".members.onOpenMemberMenu" />
+                            </HBox>
+                        </CustomListItem>
+                    </List>
+                </VBox>
+
+                <HBox id="detailsFooter" class="rsDetailsFooter" renderType="Bare" wrap="Wrap" justifyContent="Center">
+                    <Button id="detailsMuteButton" icon="sap-icon://sound-off" type="Transparent" class="rsGhostBtn"
+                        text="{path: 'MutedUntil', targetType: 'any', formatter: '.formatter.muteLabel'}" press=".actions.onOpenMuteMenu" />
+                    <Button id="detailsArchiveButton" icon="sap-icon://archive" type="Transparent" class="rsGhostBtn"
+                        text="{path: 'IsArchived', targetType: 'any', formatter: '.formatter.archiveLabel'}" press=".details.onToggleArchive" />
+                </HBox>
+                <HBox class="rsDetailsFooter" renderType="Bare" justifyContent="Center"
+                    visible="{path: 'Kind', targetType: 'any', formatter: '.formatter.isGroupLike'}">
+                    <Button id="leaveButton" icon="sap-icon://log" type="Transparent" class="rsDangerBtn"
+                        text="{i18n>leaveConversation}" press=".details.onLeave" />
+                </HBox>
+            </VBox>
+        </ScrollContainer>
+    </VBox>
+</core:FragmentDefinition>

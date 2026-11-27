@@ -11,6 +11,12 @@ import ProfileSection from "./chat/ProfileSection";
 import OnlineSection from "./chat/OnlineSection";
 import InstallSection from "./chat/InstallSection";
 import NotificationsSection from "./chat/NotificationsSection";
+import ConversationActionsSection from "./chat/ConversationActionsSection";
+import NewChatSection from "./chat/NewChatSection";
+import NewConversationSection from "./chat/NewConversationSection";
+import ExploreChannelsSection from "./chat/ExploreChannelsSection";
+import MembersSection from "./chat/MembersSection";
+import DetailsSection from "./chat/DetailsSection";
 import { isUnauthorized } from "../util/errors";
 
 const MOBILE_LIST = "list";
@@ -36,6 +42,18 @@ export default class Chat extends BaseController {
 
     public readonly notifications = new NotificationsSection(this);
 
+    public readonly actions = new ConversationActionsSection(this);
+
+    public readonly newChat = new NewChatSection(this);
+
+    public readonly newConversation = new NewConversationSection(this);
+
+    public readonly explore = new ExploreChannelsSection(this);
+
+    public readonly members = new MembersSection(this);
+
+    public readonly details = new DetailsSection(this);
+
     private lastUnauthorizedRetry = 0;
 
     public onInit(): void {
@@ -47,7 +65,7 @@ export default class Chat extends BaseController {
         this.messages.init();
         this.composer.init();
         this.online.init();
-        this.notifications.init();
+        this.notifications.init();
     }
 
     public onExit(): void {
@@ -59,6 +77,11 @@ export default class Chat extends BaseController {
         this.online.destroy();
         this.notifications.destroy();
         this.install.destroy();
+        this.details.destroy();
+        this.newChat.destroy();
+        this.newConversation.destroy();
+        this.explore.destroy();
+        this.members.destroy();
     }
 
     /** Lista de conversas carregada: atualiza o contador de não lidas (título e selo) e trata o 401. */
@@ -103,6 +126,7 @@ export default class Chat extends BaseController {
         }
 
         this.getUiModel().setProperty("/mobileView", MOBILE_LIST);
+        this.details.onClose();
         this.messages.close();
         this.conversations.syncSelection();
     };
@@ -117,6 +141,7 @@ export default class Chat extends BaseController {
         this.getUiModel().setProperty("/mobileView", MOBILE_CHAT);
         this.composer.switchTo(id);
         this.messages.open(id);
+        this.details.onConversationOpened();
         this.conversations.syncSelection();
     };
 

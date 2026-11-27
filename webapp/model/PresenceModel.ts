@@ -16,6 +16,8 @@ export default class PresenceModel extends JSONModel {
 
     private readonly changeListeners = new Set<() => void>();
 
+    private readonly lastSeen = new Map<string, string>();
+
     public constructor() {
         super({ online: {}, typing: {} } satisfies PresenceData);
         this.setDefaultBindingMode("OneWay");
@@ -45,8 +47,21 @@ export default class PresenceModel extends JSONModel {
         this.emitChange();
     }
 
-    public setUserOnline(userId: string, isOnline: boolean): void {
+    /** Último "visto por último" conhecido (do evento ou de uma leitura de /People). */
+    public getLastSeen(userId: string): string | undefined {
+        return this.lastSeen.get(userId);
+    }
+
+    public rememberLastSeen(userId: string, lastSeenAt: string | null | undefined): void {
+        if (lastSeenAt) {
+            this.lastSeen.set(userId, lastSeenAt);
+        }
+    }
+
+    public setUserOnline(userId: string, isOnline: boolean, lastSeenAt: string | null = null): void {
         const online = { ...this.getOnline() };
+
+        this.rememberLastSeen(userId, lastSeenAt);
 
         if (isOnline) {
             online[userId] = true;

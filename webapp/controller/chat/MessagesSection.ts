@@ -5,15 +5,17 @@ import type ScrollContainer from "sap/m/ScrollContainer";
 import type Text from "sap/m/Text";
 import type VBox from "sap/m/VBox";
 import type ODataListBinding from "sap/ui/model/odata/v4/ODataListBinding";
+import type ODataContextBinding from "sap/ui/model/odata/v4/ODataContextBinding";
 import type Context from "sap/ui/model/odata/v4/Context";
 import type Chat from "../Chat.controller";
 import formatter from "../../model/formatter";
-import { isUnauthorized } from "../../util/errors";
-import type { MessageCreatedPayload } from "../../service/RealtimeEvents";
+import { isNotFound, isUnauthorized } from "../../util/errors";
+import type { ConversationChangedPayload, MessageCreatedPayload } from "../../service/RealtimeEvents";
 
 interface MessageRow {
     ID: string;
     createdAt: string;
+    Kind?: string;
     Sender?: { ID: string };
 }
 
@@ -21,8 +23,12 @@ const NEW_MESSAGE_ANIMATION_MS = 400;
 const ACCENT_CLASSES = Array.from({ length: 10 }, (_, index) => `rsAccent${index + 1}`);
 const MEMBERS_LIMIT = 500;
 const NEAR_BOTTOM_PX = 80;
+const CONVERSATION_GROUP = "conversation";
 
-/** Cabeçalho + lista de mensagens da conversa aberta (/Conversations(<id>)/Messages). */
+/**
+ * Cabeçalho + lista de mensagens da conversa aberta (/Conversations(<id>)/Messages).
+ * Dono do contexto /Conversations(<id>) que o painel de detalhes compartilha: é aqui que a conversa é relida.
+ */
 export default class MessagesSection {
 
     private conversationId = "";
@@ -32,6 +38,13 @@ export default class MessagesSection {
     private isFirstRender = true;
 
     private memberIds: string[] = [];
+
+    /** Fatos do cabeçalho (Kind, par do Direct, nº de membros) lidos da própria página da conversa. */
+    private kind = "";
+
+    private peerId: string | null = null;
+
+    private memberCount: number | null = null;
 
     /** Não lidas da conversa aberta: começa no UnreadCount da página e zera após o MarkAsRead. */
     private unreadCount = 0;
@@ -44,9 +57,11 @@ export default class MessagesSection {
 
     /** Mensagem própria não recarrega nem marca como lida: o envio já atualiza a lista. */
     private readonly onMessageCreated = (payload: MessageCreatedPayload): void => {
-        this.controller.getPresence().clearTyping(payload.ConversationId, payload.SenderId);
+        if (payload.SenderId) {
+            this.controller.getPresence().clearTyping(payload.ConversationId, payload.SenderId);
+        }
 
-        if (payload.ConversationId !== this.conversationId || payload.SenderId === this.getMyId()) {
+        if (payload.ConversationId !== this.conversationId || payload.SenderId === this.controller.getMyId()) {
             return;
         }
 
@@ -71,6 +86,13 @@ export default class MessagesSection {
         void this.markAsReadIfVisible();
     };
 
+    /** Título, membros ou papel mudaram: relê a conversa aberta (uma vez só, aqui). */
+    private readonly onConversationChanged = (payload: ConversationChangedPayload): void => {
+        if (payload.ConversationId === this.conversationId) {
+            void this.refreshConversation();
+        }
+    };
+
     public constructor(private readonly controller: Chat) { }
 
     public init(): void {
@@ -78,6 +100,8 @@ export default class MessagesSection {
 
         realtime.on("message.created", this.onMessageCreated);
         realtime.on("reconnected", this.onReconnected);
+        realtime.on("conversation.updated", this.onConversationChanged);
+        realtime.on("members.changed", this.onConversationChanged);
         this.unsubscribePresence = this.controller.getPresence().onPresenceChange(() => void this.updateSubtitle());
         document.addEventListener("visibilitychange", this.onVisibilityChange);
     }
@@ -87,6 +111,8 @@ export default class MessagesSection {
 
         realtime.off("message.created", this.onMessageCreated);
         realtime.off("reconnected", this.onReconnected);
+        realtime.off("conversation.updated", this.onConversationChanged);
+        realtime.off("members.changed", this.onConversationChanged);
         this.unsubscribePresence?.();
         document.removeEventListener("visibilitychange", this.onVisibilityChange);
     }
@@ -98,6 +124,9 @@ export default class MessagesSection {
 
         this.conversationId = conversationId;
         this.memberIds = [];
+        this.kind = "";
+        this.peerId = null;
+        this.memberCount = null;
         this.unreadCount = 0;
         this.seenMessageIds.clear();
         this.isFirstRender = true;
@@ -108,9 +137,12 @@ export default class MessagesSection {
         ui.setProperty("/conversationId", conversationId);
         ui.setProperty("/subtitle", "");
         ui.setProperty("/subtitleOnline", false);
-        (this.controller.byId("messagesPage") as VBox).bindElement({ path: `/Conversations(${conversationId})` });
+        (this.controller.byId("messagesPage") as VBox).bindElement({
+            path: `/Conversations(${conversationId})`,
+            parameters: { $$updateGroupId: CONVERSATION_GROUP }
+        });
 
-        void this.loadMembers(conversationId);
+        this.refreshHeader();
         void this.loadUnread(conversationId);
     }
 
@@ -119,6 +151,47 @@ export default class MessagesSection {
         this.memberIds = [];
         this.controller.getUiModel().setProperty("/conversationId", "");
         (this.controller.byId("messagesPage") as VBox).unbindElement();
+    }
+
+    /** Relê Kind, par do Direct, nº de membros e os membros (para o online) da conversa aberta. */
+    public refreshHeader(): void {
+        const id = this.conversationId;
+
+        if (id) {
+            void this.loadHeader(id);
+            void this.loadMembers(id);
+        }
+    }
+
+    /**
+     * Recarrega a conversa aberta uma vez (contexto compartilhado com o painel) e confere MyRole:
+     * se não há MyRole ou o servidor responde 404, eu saí ou fui removido e a conversa fecha.
+     */
+    public async refreshConversation(): Promise<void> {
+        const context = (this.controller.byId("messagesPage") as VBox).getBindingContext() as Context | null;
+
+        if (!this.conversationId || !context) {
+            return;
+        }
+
+        try {
+            if (!this.controller.getODataModel().hasPendingChanges(CONVERSATION_GROUP)) {
+                await ((this.controller.byId("messagesPage") as VBox).getElementBinding() as ODataContextBinding).requestRefresh();
+            }
+
+            if (!await context.requestProperty("MyRole")) {
+                this.leaveConversation();
+                return;
+            }
+
+            this.refreshHeader();
+        } catch (error) {
+            if (isNotFound(error)) {
+                this.leaveConversation();
+            } else if (isUnauthorized(error)) {
+                await this.controller.handleError(error, "conversationsError");
+            }
+        }
     }
 
     public onBack = (): void => this.controller.navTo("chat");
@@ -149,6 +222,12 @@ export default class MessagesSection {
         }
     };
 
+    private leaveConversation(): void {
+        this.controller.showToast("removedFromConversation");
+        this.controller.conversations.refresh();
+        this.controller.navTo("chat", {}, true);
+    }
+
     private decorate(item: CustomListItem, older: CustomListItem | undefined, animate: boolean): void {
         const message = item.getBindingContext()?.getObject() as MessageRow | undefined;
         const previous = older?.getBindingContext()?.getObject() as MessageRow | undefined;
@@ -157,6 +236,7 @@ export default class MessagesSection {
             return;
         }
 
+        const isSystem = message.Kind === "System";
         const startsDay = !previous || !formatter.sameDay(message.createdAt, previous.createdAt);
         const separator = (item.getContent()[0] as VBox).getItems()[0] as Text;
 
@@ -164,8 +244,8 @@ export default class MessagesSection {
         separator.setText(formatter.dayLabel(message.createdAt));
         const accentClass = `rsAccent${formatter.accentIndex(message.Sender?.ID)}`;
 
-        ACCENT_CLASSES.forEach((cssClass) => item.toggleStyleClass(cssClass, cssClass === accentClass));
-        item.toggleStyleClass("rsGrouped", !startsDay && previous?.Sender?.ID === message.Sender?.ID);
+        ACCENT_CLASSES.forEach((cssClass) => item.toggleStyleClass(cssClass, !isSystem && cssClass === accentClass));
+        item.toggleStyleClass("rsGrouped", !isSystem && !startsDay && previous?.Sender?.ID === message.Sender?.ID);
 
         if (animate && !this.seenMessageIds.has(message.ID)) {
             item.addStyleClass("rsNew");
@@ -190,10 +270,6 @@ export default class MessagesSection {
 
     private getBinding(): ODataListBinding | undefined {
         return this.getList().getBinding("items") as ODataListBinding | undefined;
-    }
-
-    private getMyId(): string {
-        return this.controller.getSessionModel().getProperty("/user/ID") as string;
     }
 
     private isNearBottom(): boolean {
@@ -306,12 +382,83 @@ export default class MessagesSection {
             return;
         }
 
-        const myId = this.getMyId();
-        const online = this.memberIds.filter((userId) => userId !== myId && presence.isOnline(userId)).length;
+        const status = this.statusLine();
 
         ui.setProperty("/isTyping", false);
-        ui.setProperty("/subtitleOnline", online > 0);
-        ui.setProperty("/subtitle", online ? this.controller.getText("subtitleOnline", [online]) : "");
+        ui.setProperty("/subtitleOnline", status.online);
+        ui.setProperty("/subtitle", status.text);
+    }
+
+    /** Direct: online ou visto por último da outra pessoa. Grupo e canal: nº de membros e quantos estão online. */
+    private statusLine(): { text: string; online: boolean } {
+        const presence = this.controller.getPresence();
+
+        if (formatter.isDirect(this.kind) && this.peerId) {
+            const isOnline = presence.isOnline(this.peerId);
+
+            return { text: formatter.directStatus(isOnline, presence.getLastSeen(this.peerId) ?? null), online: isOnline };
+        }
+
+        if (this.memberCount === null) {
+            return { text: "", online: false };
+        }
+
+        const myId = this.controller.getMyId();
+        const online = this.memberIds.filter((userId) => userId !== myId && presence.isOnline(userId)).length;
+
+        return { text: formatter.memberSummary(this.memberCount, online), online: online > 0 };
+    }
+
+    /** Kind, par do Direct e nº de membros vêm da própria página da conversa (sem request extra). */
+    private async loadHeader(conversationId: string): Promise<void> {
+        const context = (this.controller.byId("messagesPage") as VBox).getBindingContext() as Context | null;
+
+        if (!context) {
+            return;
+        }
+
+        try {
+            const [kind, peerId, memberCount] = await context.requestProperty(["Kind", "DirectPeer_ID", "MemberCount"]) as [string, string | null, number | null];
+
+            if (conversationId === this.conversationId) {
+                this.kind = kind;
+                this.peerId = peerId;
+                this.memberCount = memberCount;
+                void this.loadPeerLastSeen(conversationId);
+                void this.updateSubtitle();
+            }
+        } catch (error) {
+            if (isUnauthorized(error)) {
+                await this.controller.handleError(error, "conversationsError");
+            }
+        }
+    }
+
+    /** "Visto por último" do Direct vem de /People; o presence.changed mantém o valor atualizado depois. */
+    private async loadPeerLastSeen(conversationId: string): Promise<void> {
+        const peerId = this.peerId;
+
+        if (!peerId || !formatter.isDirect(this.kind)) {
+            return;
+        }
+
+        const binding = this.controller.getODataModel().bindContext(`/People(${peerId})`, undefined, { $select: "LastSeenAt" });
+
+        try {
+            const person = await binding.requestObject() as { LastSeenAt: string | null } | undefined;
+
+            this.controller.getPresence().rememberLastSeen(peerId, person?.LastSeenAt);
+        } catch (error) {
+            if (isUnauthorized(error)) {
+                await this.controller.handleError(error, "conversationsError");
+            }
+        } finally {
+            binding.destroy();
+        }
+
+        if (conversationId === this.conversationId) {
+            void this.updateSubtitle();
+        }
     }
 
     private async typingLabel(userIds: string[]): Promise<string> {

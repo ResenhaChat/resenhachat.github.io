@@ -13,13 +13,18 @@ export interface PresenceChangedPayload {
 export interface MessageCreatedPayload {
     ConversationId: string;
     MessageId: string;
-    SenderId: string;
+    /** Null em mensagem do sistema (Kind = System). */
+    SenderId: string | null;
 }
 
 export interface ConversationReadPayload {
     ConversationId: string;
     UserId: string;
     LastReadAt: string;
+}
+
+export interface ConversationChangedPayload {
+    ConversationId: string;
 }
 
 export interface TypingPayload {
@@ -35,6 +40,9 @@ export interface ServerEventMap {
     "presence.changed": PresenceChangedPayload;
     "message.created": MessageCreatedPayload;
     "conversation.read": ConversationReadPayload;
+    "conversation.created": ConversationChangedPayload;
+    "conversation.updated": ConversationChangedPayload;
+    "members.changed": ConversationChangedPayload;
     "typing": TypingPayload;
     "ping": EmptyPayload;
     "pong": EmptyPayload;
@@ -66,6 +74,9 @@ export const SERVER_EVENT_TYPES: ReadonlyArray<keyof ServerEventMap> = [
     "presence.changed",
     "message.created",
     "conversation.read",
+    "conversation.created",
+    "conversation.updated",
+    "members.changed",
     "typing",
     "ping",
     "pong"

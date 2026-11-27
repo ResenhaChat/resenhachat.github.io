@@ -172,7 +172,7 @@ export default class NotificationsSection {
         const myId = this.myId();
         const openId = this.controller.getUiModel().getProperty("/conversationId") as string;
 
-        if (payload.SenderId === myId || (document.visibilityState === "visible" && payload.ConversationId === openId)) {
+        if (!payload.SenderId || payload.SenderId === myId || (document.visibilityState === "visible" && payload.ConversationId === openId)) {
             return;
         }
 

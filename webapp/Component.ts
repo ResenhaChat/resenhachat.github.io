@@ -28,6 +28,9 @@ export interface UiState {
     subtitleOnline: boolean;
     typingLabel: string;
     isTyping: boolean;
+    detailsOpen: boolean;
+    showArchived: boolean;
+    detailsDirty: boolean;
     login: {
         mode: "login" | "register";
         login: string;
@@ -155,6 +158,9 @@ export default class Component extends UIComponent {
             subtitleOnline: false,
             typingLabel: "",
             isTyping: false,
+            detailsOpen: false,
+            showArchived: false,
+            detailsDirty: false,
             login: { mode: "login", login: "", password: "", email: "", username: "", displayName: "", error: "" }
         };
 
@@ -224,7 +230,7 @@ export default class Component extends UIComponent {
         const presence = this.getPresence();
 
         realtime.on("presence.snapshot", (payload) => presence.setSnapshot(payload.OnlineUserIds ?? []));
-        realtime.on("presence.changed", (payload) => presence.setUserOnline(payload.UserId, payload.IsOnline));
+        realtime.on("presence.changed", (payload) => presence.setUserOnline(payload.UserId, payload.IsOnline, payload.LastSeenAt));
         realtime.on("typing", (payload) => presence.markTyping(payload.ConversationId, payload.UserId));
 
         this.realtime = realtime;

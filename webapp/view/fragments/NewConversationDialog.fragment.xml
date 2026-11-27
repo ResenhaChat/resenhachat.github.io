@@ -1,0 +1,68 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+>
+    <Dialog id="conversationDialog" title="{path: 'compose>/kind', formatter: '.formatter.newConversationTitle'}"
+        contentWidth="30rem" stretch="{device>/system/phone}" class="rsPeopleDialog">
+        <content>
+            <VBox class="rsPeopleBody" renderType="Bare">
+                <Label text="{i18n>fieldConversationName}" labelFor="conversationNameInput" required="true" />
+                <Input id="conversationNameInput" value="{compose>/name}" maxLength="80" valueLiveUpdate="true"
+                    liveChange=".onNameChange" submit=".onSave" class="rsAuthField" />
+                <Label text="{i18n>fieldDescription}" labelFor="conversationDescription" />
+                <TextArea id="conversationDescription" value="{compose>/description}" rows="2" maxLength="500"
+                    showExceededText="true" width="100%" />
+
+                <VBox class="rsDetailsSwitches" renderType="Bare" visible="{= ${compose>/kind} === 'Channel' }">
+                    <HBox class="rsSwitchRow" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                        <VBox renderType="Bare">
+                            <Text text="{i18n>channelPublic}" class="rsSwitchTitle" />
+                            <Text text="{i18n>channelPublicHint}" class="rsHint" />
+                        </VBox>
+                        <Switch id="conversationPublic" state="{compose>/isPublic}" />
+                    </HBox>
+                    <HBox class="rsSwitchRow" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                        <VBox renderType="Bare">
+                            <Text text="{i18n>channelOnlyAdmins}" class="rsSwitchTitle" />
+                            <Text text="{i18n>channelOnlyAdminsHint}" class="rsHint" />
+                        </VBox>
+                        <Switch id="conversationOnlyAdmins" state="{compose>/onlyAdminsCanPost}" />
+                    </HBox>
+                </VBox>
+
+                <Label text="{i18n>addPeopleLabel}" labelFor="conversationChips" />
+                <Tokenizer id="conversationChips" class="rsChips" editable="true" tokens="{compose>/selected}">
+                    <Token text="{compose>DisplayName}" key="{compose>ID}" delete=".onRemoveChip" />
+                </Tokenizer>
+                <SearchField id="newConversationSearch" placeholder="{i18n>peopleSearchPlaceholder}" value="{compose>/term}"
+                    liveChange=".onSearch" class="rsPeopleSearch" />
+                <List id="conversationPeopleList" mode="MultiSelect" showSeparators="None" noDataText="{i18n>noPeople}"
+                    class="rsPeopleList" growing="true" growingThreshold="30"
+                    selectionChange=".onSelectionChange"
+                    items="{ path: '/People', suspended: true, parameters: { $orderby: 'DisplayName' } }">
+                    <CustomListItem type="Inactive" class="rsPersonItem"
+                        selected="{parts: [{path: 'ID', targetType: 'any'}, {path: 'compose>/selected'}], formatter: '.formatter.isPicked'}">
+                        <HBox class="rsPersonRow" renderType="Bare" alignItems="Center">
+                            <HBox class="rsAvatarWrap" renderType="Bare">
+                                <Avatar displaySize="S" initials="{path: 'DisplayName', targetType: 'any', formatter: '.formatter.initials'}"
+                                    backgroundColor="{path: 'ID', targetType: 'any', formatter: '.formatter.accent'}" />
+                                <Text class="rsOnlineDot"
+                                    visible="{parts: [{path: 'ID', targetType: 'any'}, {path: 'presence>/online'}], formatter: '.formatter.isOnline'}" />
+                            </HBox>
+                            <VBox class="rsPersonBody" renderType="Bare">
+                                <Text text="{DisplayName}" maxLines="1" class="rsPersonName" />
+                                <Text text="@{Username}" maxLines="1" class="rsPersonHandle" />
+                            </VBox>
+                        </HBox>
+                    </CustomListItem>
+                </List>
+            </VBox>
+        </content>
+        <beginButton>
+            <Button id="conversationSave" text="{i18n>create}" type="Emphasized" press=".onSave" class="rsGradientBtn" />
+        </beginButton>
+        <endButton>
+            <Button id="conversationCancel" text="{i18n>cancel}" type="Transparent" press=".onCancel" class="rsGhostBtn" />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

@@ -45,7 +45,9 @@ export default class OnlineSection {
         this.appliedKey = key;
 
         if (!userIds.length) {
-            binding.suspend();
+            if (!binding.isSuspended()) {
+                binding.suspend();
+            }
             return;
         }
 
