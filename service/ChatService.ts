@@ -2,6 +2,18 @@ import Filter from "sap/ui/model/Filter";
 import FilterOperator from "sap/ui/model/FilterOperator";
 import type ODataModel from "sap/ui/model/odata/v4/ODataModel";
 import type Context from "sap/ui/model/odata/v4/Context";
+import type { MediaKind } from "../util/mediaTools";
+
+export interface UploadInput {
+    ConversationId: string;
+    Kind: MediaKind;
+    MimeType: string;
+    FileName: string;
+    Size: number;
+    Width?: number;
+    Height?: number;
+    DurationSeconds?: number;
+}
 
 /** Campos de uma mensagem usados no aviso local (com o app aberto em segundo plano). */
 export interface NotifiableMessage {
@@ -34,17 +46,43 @@ export default class ChatService {
 
     public constructor(private readonly model: ODataModel) { }
 
-    public async sendMessage(ConversationId: string, Text: string, ReplyToId?: string): Promise<void> {
+    /** Com UploadId, Text é a legenda opcional: sem legenda o parâmetro é omitido. */
+    public async sendMessage(ConversationId: string, Text: string | undefined, ReplyToId?: string, UploadId?: string): Promise<void> {
         const operation = this.model.bindContext("/SendMessage(...)");
 
         operation.setParameter("Conversation_ID", ConversationId);
-        operation.setParameter("Text", Text);
+
+        if (Text) {
+            operation.setParameter("Text", Text);
+        }
 
         if (ReplyToId) {
             operation.setParameter("ReplyTo_ID", ReplyToId);
         }
 
+        if (UploadId) {
+            operation.setParameter("Upload_ID", UploadId);
+        }
+
         await operation.invoke();
+    }
+
+    /** Reserva um upload e devolve o ID para enviar o binário (Uploads(<id>)/Content) e a miniatura do vídeo. */
+    public async createUpload(input: UploadInput): Promise<string> {
+        const parameters: Record<string, unknown> = {
+            Conversation_ID: input.ConversationId,
+            Kind: input.Kind,
+            MimeType: input.MimeType,
+            FileName: input.FileName,
+            Size: input.Size,
+            Width: input.Width,
+            Height: input.Height,
+            DurationSeconds: input.DurationSeconds
+        };
+        const definedParameters = Object.fromEntries(Object.entries(parameters).filter(([, value]) => value !== undefined));
+        const upload = await this.invokeWithResult<{ ID: string }>("CreateUpload", definedParameters);
+
+        return upload.ID;
     }
 
     public async markAsRead(ConversationId: string): Promise<void> {

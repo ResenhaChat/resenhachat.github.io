@@ -9,6 +9,7 @@ sap.ui.define(["./RuntimeConfig"], function (___RuntimeConfig) {
   const MIN_REFRESH_DELAY_MS = 5_000;
   const RETRY_DELAY_MS = 15_000;
   const NETWORK_FAILURE_STATUS = 0;
+  const MEDIA_TOKEN_RENEW_MARGIN_MS = 60 * 60 * 1000;
   class AuthError extends Error {
     constructor(message, status) {
       super(message);
@@ -31,12 +32,35 @@ sap.ui.define(["./RuntimeConfig"], function (___RuntimeConfig) {
       return null;
     }
   }
-  function toSession(response) {
+  function hasFreshMediaToken(session) {
+    return !!session.MediaToken && (session.MediaTokenExpiresAt ?? 0) - Date.now() > MEDIA_TOKEN_RENEW_MARGIN_MS;
+  }
+
+  /** Só exige renovação de sessão que já teve token de mídia; backend sem o campo segue sem foto, sem loop de refresh. */
+  function mediaTokenNeedsRenewal(session) {
+    return !!session.MediaToken && !hasFreshMediaToken(session);
+  }
+
+  /** Enquanto faltar mais de 1 h, o token de mídia atual é mantido: URLs estáveis e cache do navegador válido. */
+  function mediaTokenFor(response, current) {
+    if (current && current.User.ID === response.User.ID && hasFreshMediaToken(current)) {
+      return {
+        MediaToken: current.MediaToken,
+        MediaTokenExpiresAt: current.MediaTokenExpiresAt
+      };
+    }
+    return {
+      MediaToken: response.MediaToken,
+      MediaTokenExpiresAt: response.MediaTokenExpiresAt
+    };
+  }
+  function toSession(response, current) {
     return {
       AccessToken: response.AccessToken,
       RefreshToken: response.RefreshToken,
       ExpiresAt: Date.now() + response.ExpiresIn * 1000,
-      User: response.User
+      User: response.User,
+      ...mediaTokenFor(response, current)
     };
   }
 
@@ -65,6 +89,9 @@ sap.ui.define(["./RuntimeConfig"], function (___RuntimeConfig) {
     }
     getAccessToken() {
       return this.session?.AccessToken ?? null;
+    }
+    getMediaToken() {
+      return this.session?.MediaToken ?? null;
     }
     hasSession() {
       return this.session !== null;
@@ -96,7 +123,7 @@ sap.ui.define(["./RuntimeConfig"], function (___RuntimeConfig) {
       if (!this.session) {
         return false;
       }
-      if (this.session.ExpiresAt - Date.now() > REFRESH_MARGIN_MS) {
+      if (this.session.ExpiresAt - Date.now() > REFRESH_MARGIN_MS && !mediaTokenNeedsRenewal(this.session)) {
         this.scheduleRefresh(this.session.ExpiresAt - Date.now() - REFRESH_MARGIN_MS);
         return true;
       }
@@ -192,7 +219,7 @@ sap.ui.define(["./RuntimeConfig"], function (___RuntimeConfig) {
       return payload;
     }
     applyResponse(response) {
-      const session = toSession(response);
+      const session = toSession(response, this.session);
       this.session = session;
       this.persist();
       this.scheduleFromExpiry(session);

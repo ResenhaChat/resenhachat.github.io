@@ -24,6 +24,14 @@ sap.ui.define(["sap/ui/model/Filter", "sap/ui/model/FilterOperator", "../../util
         this.refresh();
       }
     };
+
+    /** Foto ou perfil de alguém: a lista relê (fotos do par em Direct); se fui eu, relê também meu avatar do topo. */
+    onUserUpdated = payload => {
+      if (payload.UserId === this.controller.getMyId()) {
+        this.controller.refreshElementBinding(this.controller.byId("meAvatar"));
+      }
+      this.refresh();
+    };
     constructor(controller) {
       this.controller = controller;
     }
@@ -34,6 +42,7 @@ sap.ui.define(["sap/ui/model/Filter", "sap/ui/model/FilterOperator", "../../util
       realtime.on("conversation.created", this.onRealtimeChange);
       realtime.on("conversation.updated", this.onRealtimeChange);
       realtime.on("members.changed", this.onRealtimeChange);
+      realtime.on("user.updated", this.onUserUpdated);
       realtime.on("reconnected", this.onRealtimeChange);
       this.applyFilter();
     }
@@ -44,6 +53,7 @@ sap.ui.define(["sap/ui/model/Filter", "sap/ui/model/FilterOperator", "../../util
       realtime.off("conversation.created", this.onRealtimeChange);
       realtime.off("conversation.updated", this.onRealtimeChange);
       realtime.off("members.changed", this.onRealtimeChange);
+      realtime.off("user.updated", this.onUserUpdated);
       realtime.off("reconnected", this.onRealtimeChange);
       window.clearTimeout(this.searchTimer);
       window.clearTimeout(this.refreshTimer);

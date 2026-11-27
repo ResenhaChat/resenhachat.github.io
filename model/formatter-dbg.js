@@ -1,9 +1,21 @@
-sap.ui.define(["sap/ui/core/format/DateFormat"], function (DateFormat) {
+sap.ui.define(["sap/ui/core/format/DateFormat", "../auth/RuntimeConfig"], function (DateFormat, ___auth_RuntimeConfig) {
   "use strict";
 
+  const getRuntimeConfig = ___auth_RuntimeConfig["getRuntimeConfig"];
   const ACCENT_COUNT = 10;
   const GENERAL_KINDS = ["General", "Group", "Channel"];
   const MAX_BADGE = 99;
+  const KB = 1024;
+  const MB = KB * KB;
+  const SECONDS_PER_MINUTE = 60;
+  const MEDIA_MAX_WIDTH = 280;
+  const MEDIA_MAX_HEIGHT = 360;
+  const MEDIA_FALLBACK = {
+    width: 240,
+    height: 180
+  };
+  const FILE_ICON_RULES = [[/^video\//, "sap-icon://video"], [/^image\//, "sap-icon://attachment-photo"], [/pdf/, "sap-icon://pdf-attachment"], [/zip|rar|7z|tar|gzip/, "sap-icon://attachment-zip-file"], [/sheet|excel|csv/, "sap-icon://excel-attachment"], [/presentation|powerpoint/, "sap-icon://ppt-attachment"], [/word|opendocument\.text/, "sap-icon://doc-attachment"], [/^text\//, "sap-icon://document-text"]];
+  const DEFAULT_FILE_ICON = "sap-icon://document";
   let getText = key => key;
 
   /** O Component informa de onde vêm os textos i18n usados pelos formatters. */
@@ -29,6 +41,41 @@ sap.ui.define(["sap/ui/core/format/DateFormat"], function (DateFormat) {
       hash = Math.imul(hash ^ char.charCodeAt(0), 16777619) >>> 0;
     }
     return (hash >>> 8) % ACCENT_COUNT + 1;
+  }
+
+  /** URL de leitura de mídia com o token na query `mt`; sem token não há URL (o avatar cai nas iniciais). */
+  function mediaUrl(resource, mediaToken, version) {
+    if (!mediaToken) {
+      return undefined;
+    }
+    const versionQuery = version === undefined ? "" : `v=1.0.0&`;
+    return `${getRuntimeConfig().chatService}${resource}?${versionQuery}mt=${encodeURIComponent(mediaToken)}`;
+  }
+
+  /** photo: AvatarMimeType (ou DirectPeerHasAvatar) — null/vazio = sem foto. */
+  function avatarUrl(set, id, photo, version, mediaToken) {
+    if (!id || !photo) {
+      return undefined;
+    }
+    return mediaUrl(`${set}(${id})/Avatar`, mediaToken, version ?? 0);
+  }
+  function attachmentUrl(id, part, mediaToken) {
+    return id ? mediaUrl(`Attachments(${id})/${part}`, mediaToken) : undefined;
+  }
+
+  /** Caixa da mídia no balão: proporção original limitada a 280 x 360 px, sem ampliar. */
+  function mediaBox(width, height) {
+    if (!width || !height) {
+      return MEDIA_FALLBACK;
+    }
+    const scale = Math.min(1, MEDIA_MAX_WIDTH / width, MEDIA_MAX_HEIGHT / height);
+    return {
+      width: Math.round(width * scale),
+      height: Math.round(height * scale)
+    };
+  }
+  function pad(value) {
+    return String(value).padStart(2, "0");
   }
   const timeFormat = DateFormat.getTimeInstance({
     pattern: "HH:mm"
@@ -278,6 +325,87 @@ sap.ui.define(["sap/ui/core/format/DateFormat"], function (DateFormat) {
         return getText("statusOnline");
       }
       return formatter.lastSeenLabel(lastSeenAt);
+    },
+    /** Foto do canal público (Conversations/Avatar); sem foto, o ícone de canal. */
+    channelAvatarSrc(conversationId, photo, version, mediaToken) {
+      // Quem explora ainda não é membro: a foto do canal público vem por PublicChannels.
+      return avatarUrl("PublicChannels", conversationId, photo, version, mediaToken) ?? formatter.conversationIcon("Channel");
+    },
+    /** Foto de pessoa (People) ou minha (Me); undefined = iniciais. */
+    personAvatarSrc(userId, photo, version, mediaToken) {
+      return avatarUrl("People", userId, photo, version, mediaToken);
+    },
+    meAvatarSrc(userId, photo, version, mediaToken) {
+      return avatarUrl("Me", userId, photo, version, mediaToken);
+    },
+    /** Direct: foto do par; grupo e canal: foto da conversa; sem foto, ícone do tipo (Direct cai nas iniciais). */
+    conversationAvatarSrc(kind, conversationId, groupPhoto, groupVersion, peerId, peerHasPhoto, peerVersion, mediaToken) {
+      const photo = formatter.isDirect(kind) ? avatarUrl("People", peerId, peerHasPhoto, peerVersion, mediaToken) : avatarUrl("Conversations", conversationId, groupPhoto, groupVersion, mediaToken);
+      return photo ?? (formatter.conversationIcon(kind) || undefined);
+    },
+    /** Miniatura da foto ou do vídeo; foto sem miniatura usa o original; vídeo sem miniatura fica sem imagem. */
+    attachmentThumbSrc(attachmentId, thumbnailMimeType, kind, mediaToken) {
+      if (!thumbnailMimeType && kind !== "Image") {
+        return undefined;
+      }
+      return attachmentUrl(attachmentId, thumbnailMimeType ? "Thumbnail" : "Content", mediaToken);
+    },
+    attachmentUrl(attachmentId, part, mediaToken) {
+      return attachmentUrl(attachmentId, part, mediaToken);
+    },
+    /** Só a largura: a altura segue a proporção da imagem (height auto no CSS), sem distorcer em 375 px. */
+    mediaWidth(width, height) {
+      return `${mediaBox(width, height).width}px`;
+    },
+    /** Download forçado (Content-Disposition: attachment), serve também para cross-origin. */
+    attachmentDownloadUrl(attachmentId, mediaToken) {
+      const url = attachmentUrl(attachmentId, "Content", mediaToken);
+      return url ? `${url}&download=1` : undefined;
+    },
+    /** Dica da foto do grupo só para quem pode trocá-la; sem permissão o avatar não anuncia ação. */
+    groupPhotoTooltip(role, kind) {
+      return formatter.canEditGroupPhoto(role, kind) ? getText("changePhoto") : undefined;
+    },
+    groupPhotoBadge(role, kind) {
+      return formatter.canEditGroupPhoto(role, kind) ? "sap-icon://camera" : "";
+    },
+    fileSize(bytes) {
+      const size = bytes ?? 0;
+      const format = (value, unit, digits) => `${value.toLocaleString(undefined, {
+        maximumFractionDigits: digits
+      })} ${unit}`;
+      if (size < KB) {
+        return format(size, "B", 0);
+      }
+      return size < MB ? format(size / KB, "KB", 0) : format(size / MB, "MB", 1);
+    },
+    fileIcon(mimeType) {
+      const rule = FILE_ICON_RULES.find(([pattern]) => pattern.test(mimeType ?? ""));
+      return rule?.[1] ?? DEFAULT_FILE_ICON;
+    },
+    durationLabel(seconds) {
+      const total = Math.round(seconds ?? 0);
+      return `${Math.floor(total / SECONDS_PER_MINUTE)}:${pad(total % SECONDS_PER_MINUTE)}`;
+    },
+    isImageMessage(kind, deletedAt) {
+      return kind === "Image" && !toDate(deletedAt);
+    },
+    isVideoMessage(kind, deletedAt) {
+      return kind === "Video" && !toDate(deletedAt);
+    },
+    isFileMessage(kind, deletedAt) {
+      return kind === "File" && !toDate(deletedAt);
+    },
+    /** Foto ou vídeo: o balão mostra a miniatura. */
+    isPictureMessage(kind, deletedAt) {
+      return formatter.isImageMessage(kind, deletedAt) || formatter.isVideoMessage(kind, deletedAt);
+    },
+    isMediaMessage(kind, deletedAt) {
+      return formatter.isImageMessage(kind, deletedAt) || formatter.isVideoMessage(kind, deletedAt) || formatter.isFileMessage(kind, deletedAt);
+    },
+    /** Foto do grupo ou canal: só dono e admin, em conversa que não é Direct. */
+    canEditGroupPhoto(role, kind) {
+      return formatter.isManager(role) && formatter.isGroupLike(kind);
     }
   };
   formatter.setFormatterTextProvider = setFormatterTextProvider;

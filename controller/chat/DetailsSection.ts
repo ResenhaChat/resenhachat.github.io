@@ -1,8 +1,16 @@
 import type VBox from "sap/m/VBox";
 import type HBox from "sap/m/HBox";
+import type List from "sap/m/List";
+import type Menu from "sap/m/Menu";
+import type MenuItem from "sap/m/MenuItem";
+import type Control from "sap/ui/core/Control";
+import type { Avatar$PressEvent } from "sap/m/Avatar";
+import type { UserUpdatedPayload } from "../../service/RealtimeEvents";
 import type Context from "sap/ui/model/odata/v4/Context";
 import type Chat from "../Chat.controller";
+import formatter from "../../model/formatter";
 import { isUnauthorized } from "../../util/errors";
+import { pickAvatar } from "../../util/mediaTools";
 
 const CONVERSATION_GROUP = "conversation";
 
@@ -19,14 +27,50 @@ export default class DetailsSection {
 
     private membership?: Context;
 
+    /** ID da pessoa do par que o painel mostra agora (Direct); null fora de Direct. */
+    private boundPeerId: string | null = null;
+
     public constructor(private readonly controller: Chat) { }
 
+    public init(): void {
+        this.controller.getRealtime().on("user.updated", this.onUserUpdated);
+    }
+
     public destroy(): void {
+        this.controller.getRealtime().off("user.updated", this.onUserUpdated);
         this.close();
     }
 
     public onOpen = (): void => {
         void this.open();
+    };
+
+    /** Foto do grupo: o menu só abre para dono e admin; "Remover" só aparece quando há foto. */
+    public onAvatarPress = (event: Avatar$PressEvent): void => {
+        const context = this.getPanel().getBindingContext() as Context | null;
+        const role = context?.getProperty("MyRole") as string | null | undefined;
+        const kind = context?.getProperty("Kind") as string | null | undefined;
+
+        if (!formatter.canEditGroupPhoto(role, kind)) {
+            return;
+        }
+
+        (this.controller.byId("groupPhotoRemove") as MenuItem).setVisible(!!context?.getProperty("AvatarMimeType"));
+        (this.controller.byId("groupAvatarMenu") as Menu).openBy(event.getSource());
+    };
+
+    public onChangeGroupPhoto = async (): Promise<void> => {
+        const photo = await pickAvatar();
+
+        if (photo) {
+            await this.saveGroupPhoto(() => this.controller.getAppComponent().getMediaService().putAvatar(this.ownerPath(), photo));
+        }
+    };
+
+    public onRemoveGroupPhoto = async (): Promise<void> => {
+        if (await this.controller.confirm("confirmRemovePhoto")) {
+            await this.saveGroupPhoto(() => this.controller.getAppComponent().getMediaService().deleteAvatar(this.ownerPath()));
+        }
     };
 
     public onClose = (): void => {
@@ -91,6 +135,35 @@ export default class DetailsSection {
             await this.controller.handleError(error, "leaveError");
         }
     };
+
+    /** Pessoa mudou de perfil ou foto: relê o par só se for o par aberto e a lista de membros só se ela estiver nela. */
+    private readonly onUserUpdated = (payload: UserUpdatedPayload): void => {
+        if (!this.isOpen()) {
+            return;
+        }
+
+        if (payload.UserId === this.boundPeerId) {
+            this.controller.refreshElementBinding(this.controller.byId("detailsPeer") as Control | undefined);
+        }
+
+        if (this.controller.messages.hasMember(payload.UserId)) {
+            (this.controller.byId("membersList") as List).getBinding("items")?.refresh();
+        }
+    };
+
+    private ownerPath(): string {
+        return `Conversations(${this.controller.getOpenConversationId()})`;
+    }
+
+    private async saveGroupPhoto(action: () => Promise<void>): Promise<void> {
+        try {
+            await action();
+            this.controller.showToast("photoSaved");
+            await this.controller.messages.refreshConversation();
+        } catch (error) {
+            await this.controller.handleError(error, "photoError");
+        }
+    }
 
     private async open(): Promise<void> {
         const conversationId = this.controller.getOpenConversationId();
@@ -157,8 +230,10 @@ export default class DetailsSection {
     private bindPeer(peerId: string | null): void {
         const peerBox = this.controller.byId("detailsPeer") as VBox;
 
+        this.boundPeerId = peerId;
+
         if (peerId) {
-            peerBox.bindElement({ path: `/People(${peerId})`, parameters: { $select: "ID,DisplayName,Username,About,LastSeenAt" } });
+            peerBox.bindElement({ path: `/People(${peerId})`, parameters: { $select: "ID,DisplayName,Username,About,LastSeenAt,AvatarMimeType,AvatarVersion" } });
             return;
         }
 

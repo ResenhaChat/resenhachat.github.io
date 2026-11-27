@@ -16,8 +16,19 @@
             <VBox class="rsDetailsBody" renderType="Bare">
                 <VBox class="rsDetailsHero" renderType="Bare" alignItems="Center"
                     visible="{path: 'Kind', targetType: 'any', formatter: '.formatter.isNotDirect'}">
-                    <Avatar displaySize="XL" class="rsDetailsAvatar"
-                        src="{path: 'Kind', targetType: 'any', formatter: '.formatter.conversationIcon'}"
+                    <Avatar id="detailsAvatar" displaySize="XL" class="rsDetailsAvatar" press=".details.onAvatarPress"
+                        tooltip="{parts: [{path: 'MyRole', targetType: 'any'}, {path: 'Kind', targetType: 'any'}], formatter: '.formatter.groupPhotoTooltip'}"
+                        badgeIcon="{parts: [{path: 'MyRole', targetType: 'any'}, {path: 'Kind', targetType: 'any'}], formatter: '.formatter.groupPhotoBadge'}"
+                        src="{parts: [
+                            {path: 'Kind', targetType: 'any'},
+                            {path: 'ID', targetType: 'any'},
+                            {path: 'AvatarMimeType', targetType: 'any'},
+                            {path: 'AvatarVersion', targetType: 'any'},
+                            {path: 'DirectPeer_ID', targetType: 'any'},
+                            {path: 'DirectPeerHasAvatar', targetType: 'any'},
+                            {path: 'DirectPeerAvatarVersion', targetType: 'any'},
+                            {path: 'session>/mediaToken'}
+                        ], formatter: '.formatter.conversationAvatarSrc'}"
                         initials="{path: 'Title', targetType: 'any', formatter: '.formatter.initials'}"
                         backgroundColor="{path: 'ID', targetType: 'any', formatter: '.formatter.accent'}" />
                     <Title text="{Title}" titleStyle="H3" class="rsDetailsName" />
@@ -71,6 +82,7 @@
                     visible="{path: 'Kind', targetType: 'any', formatter: '.formatter.isDirect'}">
                     <VBox id="detailsPeer" class="rsDetailsHero" renderType="Bare" alignItems="Center">
                         <Avatar displaySize="XL" class="rsDetailsAvatar"
+                            src="{parts: [{path: 'ID', targetType: 'any'}, {path: 'AvatarMimeType', targetType: 'any'}, {path: 'AvatarVersion', targetType: 'any'}, {path: 'session>/mediaToken'}], formatter: '.formatter.personAvatarSrc'}"
                             initials="{path: 'DisplayName', targetType: 'any', formatter: '.formatter.initials'}"
                             backgroundColor="{path: 'ID', targetType: 'any', formatter: '.formatter.accent'}" />
                         <Title text="{DisplayName}" titleStyle="H3" class="rsDetailsName" />
@@ -90,11 +102,12 @@
                     </HBox>
                     <List id="membersList" showSeparators="None" class="rsMemberList" noDataText="{i18n>noMembers}" growing="true" growingThreshold="30"
                         updateFinished=".members.onMembersUpdated"
-                        items="{ path: 'Members', parameters: { $expand: 'User($select=ID,DisplayName,Username)', $orderby: 'User/DisplayName' } }">
+                        items="{ path: 'Members', parameters: { $expand: 'User($select=ID,DisplayName,Username,AvatarMimeType,AvatarVersion)', $orderby: 'User/DisplayName' } }">
                         <CustomListItem type="Inactive" class="rsMemberItem">
                             <HBox class="rsMemberRow" renderType="Bare" alignItems="Center">
                                 <HBox class="rsAvatarWrap" renderType="Bare">
                                     <Avatar displaySize="S" initials="{path: 'User/DisplayName', targetType: 'any', formatter: '.formatter.initials'}"
+                                        src="{parts: [{path: 'User/ID', targetType: 'any'}, {path: 'User/AvatarMimeType', targetType: 'any'}, {path: 'User/AvatarVersion', targetType: 'any'}, {path: 'session>/mediaToken'}], formatter: '.formatter.personAvatarSrc'}"
                                         backgroundColor="{path: 'User_ID', targetType: 'any', formatter: '.formatter.accent'}" />
                                     <Text class="rsOnlineDot"
                                         visible="{parts: [{path: 'User_ID', targetType: 'any'}, {path: 'presence>/online'}], formatter: '.formatter.isOnline'}" />

@@ -1,4 +1,4 @@
-sap.ui.define(["sap/ui/core/Fragment", "sap/ui/core/library", "../../model/formatter", "../../util/errors"], function (Fragment, sap_ui_core_library, __formatter, ____util_errors) {
+sap.ui.define(["sap/ui/core/Fragment", "sap/ui/core/library", "../../model/formatter", "../../util/errors", "../../util/mediaTools"], function (Fragment, sap_ui_core_library, __formatter, ____util_errors, ____util_mediaTools) {
   "use strict";
 
   function _interopRequireDefault(obj) {
@@ -7,6 +7,7 @@ sap.ui.define(["sap/ui/core/Fragment", "sap/ui/core/library", "../../model/forma
   const ValueState = sap_ui_core_library["ValueState"];
   const formatter = _interopRequireDefault(__formatter);
   const isUnauthorized = ____util_errors["isUnauthorized"];
+  const pickAvatar = ____util_mediaTools["pickAvatar"];
   const UPDATE_GROUP = "profile";
 
   /** Edição do próprio perfil: /Me(<id>) two-way no update group "profile". */
@@ -61,6 +62,26 @@ sap.ui.define(["sap/ui/core/Fragment", "sap/ui/core/library", "../../model/forma
     onCancel = () => {
       this.dialog?.close();
     };
+
+    /** Menu da foto: "Remover" só aparece quando há foto. */
+    onAvatarPress = event => {
+      const hasPhoto = !!this.dialog?.getBindingContext()?.getProperty("AvatarMimeType");
+      this.controller.getFragmentControl("profilePhotoRemove").setVisible(hasPhoto);
+      this.controller.getFragmentControl("profileAvatarMenu").openBy(event.getSource());
+    };
+
+    /** O seletor abre dentro do gesto do item de menu (sem await antes), senão o navegador bloqueia. */
+    onChangePhoto = async () => {
+      const photo = await pickAvatar();
+      if (photo) {
+        await this.savePhoto(() => this.controller.getAppComponent().getMediaService().putAvatar(this.ownerPath(), photo));
+      }
+    };
+    onRemovePhoto = async () => {
+      if (await this.controller.confirm("confirmRemovePhoto")) {
+        await this.savePhoto(() => this.controller.getAppComponent().getMediaService().deleteAvatar(this.ownerPath()));
+      }
+    };
     onAfterClose = () => {
       const model = this.controller.getODataModel();
       if (model.hasPendingChanges(UPDATE_GROUP)) {
@@ -85,6 +106,26 @@ sap.ui.define(["sap/ui/core/Fragment", "sap/ui/core/library", "../../model/forma
       }
       if (model.hasPendingChanges(UPDATE_GROUP)) {
         throw new Error(this.controller.getText("profileNotSaved"));
+      }
+    }
+    ownerPath() {
+      return `Me(${this.controller.getMyId()})`;
+    }
+
+    /** Foto salva: relê o avatar do topo e o do diálogo (este só se não há edição pendente no perfil). */
+    async savePhoto(action) {
+      try {
+        await action();
+        this.refreshAvatars();
+        this.controller.showToast("photoSaved");
+      } catch (error) {
+        await this.controller.handleError(error, "photoError");
+      }
+    }
+    refreshAvatars() {
+      this.controller.refreshElementBinding(this.controller.byId("meAvatar"));
+      if (this.dialog && !this.controller.getODataModel().hasPendingChanges(UPDATE_GROUP)) {
+        this.controller.refreshElementBinding(this.dialog);
       }
     }
     getInput() {

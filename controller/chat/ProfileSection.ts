@@ -1,10 +1,15 @@
 import Fragment from "sap/ui/core/Fragment";
 import { ValueState } from "sap/ui/core/library";
+import type Control from "sap/ui/core/Control";
 import type Dialog from "sap/m/Dialog";
 import type Input from "sap/m/Input";
+import type Menu from "sap/m/Menu";
+import type MenuItem from "sap/m/MenuItem";
+import type { Avatar$PressEvent } from "sap/m/Avatar";
 import type Chat from "../Chat.controller";
 import formatter from "../../model/formatter";
 import { isUnauthorized } from "../../util/errors";
+import { pickAvatar } from "../../util/mediaTools";
 
 const UPDATE_GROUP = "profile";
 
@@ -67,6 +72,29 @@ export default class ProfileSection {
         this.dialog?.close();
     };
 
+    /** Menu da foto: "Remover" só aparece quando há foto. */
+    public onAvatarPress = (event: Avatar$PressEvent): void => {
+        const hasPhoto = !!(this.dialog?.getBindingContext()?.getProperty("AvatarMimeType") as string | null | undefined);
+
+        this.controller.getFragmentControl<MenuItem>("profilePhotoRemove").setVisible(hasPhoto);
+        this.controller.getFragmentControl<Menu>("profileAvatarMenu").openBy(event.getSource());
+    };
+
+    /** O seletor abre dentro do gesto do item de menu (sem await antes), senão o navegador bloqueia. */
+    public onChangePhoto = async (): Promise<void> => {
+        const photo = await pickAvatar();
+
+        if (photo) {
+            await this.savePhoto(() => this.controller.getAppComponent().getMediaService().putAvatar(this.ownerPath(), photo));
+        }
+    };
+
+    public onRemovePhoto = async (): Promise<void> => {
+        if (await this.controller.confirm("confirmRemovePhoto")) {
+            await this.savePhoto(() => this.controller.getAppComponent().getMediaService().deleteAvatar(this.ownerPath()));
+        }
+    };
+
     public onAfterClose = (): void => {
         const model = this.controller.getODataModel();
 
@@ -97,6 +125,29 @@ export default class ProfileSection {
 
         if (model.hasPendingChanges(UPDATE_GROUP)) {
             throw new Error(this.controller.getText("profileNotSaved"));
+        }
+    }
+
+    private ownerPath(): string {
+        return `Me(${this.controller.getMyId()})`;
+    }
+
+    /** Foto salva: relê o avatar do topo e o do diálogo (este só se não há edição pendente no perfil). */
+    private async savePhoto(action: () => Promise<void>): Promise<void> {
+        try {
+            await action();
+            this.refreshAvatars();
+            this.controller.showToast("photoSaved");
+        } catch (error) {
+            await this.controller.handleError(error, "photoError");
+        }
+    }
+
+    private refreshAvatars(): void {
+        this.controller.refreshElementBinding(this.controller.byId("meAvatar") as Control | undefined);
+
+        if (this.dialog && !this.controller.getODataModel().hasPendingChanges(UPDATE_GROUP)) {
+            this.controller.refreshElementBinding(this.dialog);
         }
     }
 

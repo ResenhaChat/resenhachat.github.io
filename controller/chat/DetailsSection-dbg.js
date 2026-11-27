@@ -1,7 +1,12 @@
-sap.ui.define(["../../util/errors"], function (____util_errors) {
+sap.ui.define(["../../model/formatter", "../../util/errors", "../../util/mediaTools"], function (__formatter, ____util_errors, ____util_mediaTools) {
   "use strict";
 
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule && typeof obj.default !== "undefined" ? obj.default : obj;
+  }
+  const formatter = _interopRequireDefault(__formatter);
   const isUnauthorized = ____util_errors["isUnauthorized"];
+  const pickAvatar = ____util_mediaTools["pickAvatar"];
   const CONVERSATION_GROUP = "conversation";
 
   /** UI5 aceita null para limpar o contexto de binding, mas a tipagem de setBindingContext não o declara. */
@@ -14,14 +19,43 @@ sap.ui.define(["../../util/errors"], function (____util_errors) {
    * O rodapé usa a minha linha de Members (update group "membership") via contexto próprio.
    */
   class DetailsSection {
+    /** ID da pessoa do par que o painel mostra agora (Direct); null fora de Direct. */
+    boundPeerId = null;
     constructor(controller) {
       this.controller = controller;
     }
+    init() {
+      this.controller.getRealtime().on("user.updated", this.onUserUpdated);
+    }
     destroy() {
+      this.controller.getRealtime().off("user.updated", this.onUserUpdated);
       this.close();
     }
     onOpen = () => {
       void this.open();
+    };
+
+    /** Foto do grupo: o menu só abre para dono e admin; "Remover" só aparece quando há foto. */
+    onAvatarPress = event => {
+      const context = this.getPanel().getBindingContext();
+      const role = context?.getProperty("MyRole");
+      const kind = context?.getProperty("Kind");
+      if (!formatter.canEditGroupPhoto(role, kind)) {
+        return;
+      }
+      this.controller.byId("groupPhotoRemove").setVisible(!!context?.getProperty("AvatarMimeType"));
+      this.controller.byId("groupAvatarMenu").openBy(event.getSource());
+    };
+    onChangeGroupPhoto = async () => {
+      const photo = await pickAvatar();
+      if (photo) {
+        await this.saveGroupPhoto(() => this.controller.getAppComponent().getMediaService().putAvatar(this.ownerPath(), photo));
+      }
+    };
+    onRemoveGroupPhoto = async () => {
+      if (await this.controller.confirm("confirmRemovePhoto")) {
+        await this.saveGroupPhoto(() => this.controller.getAppComponent().getMediaService().deleteAvatar(this.ownerPath()));
+      }
     };
     onClose = () => {
       this.close();
@@ -76,6 +110,31 @@ sap.ui.define(["../../util/errors"], function (____util_errors) {
         await this.controller.handleError(error, "leaveError");
       }
     };
+
+    /** Pessoa mudou de perfil ou foto: relê o par só se for o par aberto e a lista de membros só se ela estiver nela. */
+    onUserUpdated = payload => {
+      if (!this.isOpen()) {
+        return;
+      }
+      if (payload.UserId === this.boundPeerId) {
+        this.controller.refreshElementBinding(this.controller.byId("detailsPeer"));
+      }
+      if (this.controller.messages.hasMember(payload.UserId)) {
+        this.controller.byId("membersList").getBinding("items")?.refresh();
+      }
+    };
+    ownerPath() {
+      return `Conversations(${this.controller.getOpenConversationId()})`;
+    }
+    async saveGroupPhoto(action) {
+      try {
+        await action();
+        this.controller.showToast("photoSaved");
+        await this.controller.messages.refreshConversation();
+      } catch (error) {
+        await this.controller.handleError(error, "photoError");
+      }
+    }
     async open() {
       const conversationId = this.controller.getOpenConversationId();
       const context = this.controller.byId("messagesPage").getBindingContext();
@@ -130,11 +189,12 @@ sap.ui.define(["../../util/errors"], function (____util_errors) {
     /** Em Direct, o painel mostra o perfil da outra pessoa (People), não a lista de membros. */
     bindPeer(peerId) {
       const peerBox = this.controller.byId("detailsPeer");
+      this.boundPeerId = peerId;
       if (peerId) {
         peerBox.bindElement({
           path: `/People(${peerId})`,
           parameters: {
-            $select: "ID,DisplayName,Username,About,LastSeenAt"
+            $select: "ID,DisplayName,Username,About,LastSeenAt,AvatarMimeType,AvatarVersion"
           }
         });
         return;

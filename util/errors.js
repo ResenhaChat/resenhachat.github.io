@@ -1,2 +1,2 @@
-sap.ui.define([],function(){"use strict";function t(t){return t?.status===401}function u(t){return t?.status===404}function e(t){return t?.message??""}var n={__esModule:true};n.isUnauthorized=t;n.isNotFound=u;n.errorDetail=e;return n});
+sap.ui.define([],function(){"use strict";function r(r){return r?.status===401}function t(r){return r?.status===404}function n(r){return r?.name==="AbortError"}function u(r){return r?.message??""}var e={__esModule:true};e.isUnauthorized=r;e.isNotFound=t;e.isAbortError=n;e.errorDetail=u;return e});
 //# sourceMappingURL=errors.js.map

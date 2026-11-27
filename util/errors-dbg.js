@@ -7,6 +7,11 @@ sap.ui.define([], function () {
   function isNotFound(error) {
     return error?.status === 404;
   }
+
+  /** Cancelamento de envio (AbortController): não é erro para o usuário. */
+  function isAbortError(error) {
+    return error?.name === "AbortError";
+  }
   function errorDetail(error) {
     return error?.message ?? "";
   }
@@ -15,6 +20,7 @@ sap.ui.define([], function () {
   };
   __exports.isUnauthorized = isUnauthorized;
   __exports.isNotFound = isNotFound;
+  __exports.isAbortError = isAbortError;
   __exports.errorDetail = errorDetail;
   return __exports;
 });

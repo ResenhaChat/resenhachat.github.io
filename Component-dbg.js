@@ -1,4 +1,4 @@
-sap.ui.define(["sap/ui/core/UIComponent", "sap/ui/model/json/JSONModel", "sap/ui/model/odata/v4/ODataModel", "sap/ui/Device", "./auth/AuthService", "./auth/RuntimeConfig", "./service/ChatService", "./service/PushService", "./service/RealtimeService", "./model/PresenceModel", "./model/formatter", "./util/ThemeManager", "./util/pwa", "./util/notifications", "./util/push"], function (UIComponent, JSONModel, ODataModel, Device, __AuthService, ___auth_RuntimeConfig, __ChatService, __PushService, __RealtimeService, __PresenceModel, ___model_formatter, __ThemeManager, ___util_pwa, ___util_notifications, ___util_push) {
+sap.ui.define(["sap/ui/core/UIComponent", "sap/ui/model/json/JSONModel", "sap/ui/model/odata/v4/ODataModel", "sap/ui/Device", "./auth/AuthService", "./auth/RuntimeConfig", "./service/ChatService", "./service/MediaService", "./service/PushService", "./service/RealtimeService", "./model/PresenceModel", "./model/formatter", "./util/ThemeManager", "./util/pwa", "./util/notifications", "./util/push"], function (UIComponent, JSONModel, ODataModel, Device, __AuthService, ___auth_RuntimeConfig, __ChatService, __MediaService, __PushService, __RealtimeService, __PresenceModel, ___model_formatter, __ThemeManager, ___util_pwa, ___util_notifications, ___util_push) {
   "use strict";
 
   function _interopRequireDefault(obj) {
@@ -8,6 +8,7 @@ sap.ui.define(["sap/ui/core/UIComponent", "sap/ui/model/json/JSONModel", "sap/ui
   const getRuntimeConfig = ___auth_RuntimeConfig["getRuntimeConfig"];
   const loadRuntimeConfig = ___auth_RuntimeConfig["loadRuntimeConfig"];
   const ChatService = _interopRequireDefault(__ChatService);
+  const MediaService = _interopRequireDefault(__MediaService);
   const PushService = _interopRequireDefault(__PushService);
   const RealtimeService = _interopRequireDefault(__RealtimeService);
   const PresenceModel = _interopRequireDefault(__PresenceModel);
@@ -46,6 +47,12 @@ sap.ui.define(["sap/ui/core/UIComponent", "sap/ui/model/json/JSONModel", "sap/ui
       }
       return this.chatService;
     },
+    getMediaService: function _getMediaService() {
+      if (!this.mediaService) {
+        throw new Error("Media service is not available before login");
+      }
+      return this.mediaService;
+    },
     getPushService: function _getPushService() {
       if (!this.pushService) {
         throw new Error("Push service is not available before login");
@@ -76,7 +83,8 @@ sap.ui.define(["sap/ui/core/UIComponent", "sap/ui/model/json/JSONModel", "sap/ui
       await loadRuntimeConfig();
       this.setModel(new JSONModel(Device), "device");
       this.setModel(new JSONModel({
-        user: {}
+        user: {},
+        mediaToken: ""
       }), "session");
       this.setModel(new PresenceModel(), "presence");
       this.setModel(this.createUiModel(), "ui");
@@ -110,6 +118,7 @@ sap.ui.define(["sap/ui/core/UIComponent", "sap/ui/model/json/JSONModel", "sap/ui
         detailsOpen: false,
         showArchived: false,
         detailsDirty: false,
+        dragging: false,
         login: {
           mode: "login",
           login: "",
@@ -142,6 +151,7 @@ sap.ui.define(["sap/ui/core/UIComponent", "sap/ui/model/json/JSONModel", "sap/ui
       this.chatModel.changeHttpHeaders({
         Authorization: `Bearer ${session.AccessToken}`
       });
+      this.syncMediaToken(session);
       if (session.AccessToken !== this.lastAccessToken) {
         this.lastAccessToken = session.AccessToken;
         this.realtime?.renew();
@@ -155,6 +165,7 @@ sap.ui.define(["sap/ui/core/UIComponent", "sap/ui/model/json/JSONModel", "sap/ui
       this.getModel("session").setProperty("/user", {
         ID: userId
       });
+      this.syncMediaToken(session);
       this.getPresence().setSelf(userId);
       this.lastAccessToken = session.AccessToken;
       this.chatModel = new ODataModel({
@@ -168,10 +179,14 @@ sap.ui.define(["sap/ui/core/UIComponent", "sap/ui/model/json/JSONModel", "sap/ui
       });
       this.setModel(this.chatModel);
       this.chatService = new ChatService(this.chatModel);
+      this.mediaService = new MediaService(this.chatService, this.getAuth());
       this.pushService = new PushService(this.chatModel);
       this.startRealtime();
       void registerServiceWorker();
       void this.pushService.sync().catch(() => false);
+    },
+    /** Token de mídia no modelo session (/mediaToken) para os formatters montarem as URLs de avatar e anexo. */syncMediaToken: function _syncMediaToken(session) {
+      this.getModel("session").setProperty("/mediaToken", session.MediaToken ?? "");
     },
     startRealtime: function _startRealtime() {
       const realtime = new RealtimeService(forceRefresh => this.buildWsUrl(forceRefresh));

@@ -10,7 +10,8 @@
                 items="{ path: '/PublicChannels', suspended: true, parameters: { $orderby: 'Name' } }">
                 <CustomListItem type="Inactive" class="rsChannelItem">
                     <HBox class="rsChannelRow" renderType="Bare" alignItems="Center">
-                        <Avatar displaySize="S" src="sap-icon://marketing-campaign"
+                        <Avatar displaySize="S"
+                            src="{parts: [{path: 'ID', targetType: 'any'}, {path: 'AvatarMimeType', targetType: 'any'}, {path: 'AvatarVersion', targetType: 'any'}, {path: 'session>/mediaToken'}], formatter: '.formatter.channelAvatarSrc'}"
                             backgroundColor="{path: 'ID', targetType: 'any', formatter: '.formatter.accent'}" />
                         <VBox class="rsPersonBody" renderType="Bare">
                             <Text text="{Name}" maxLines="1" class="rsPersonName" />

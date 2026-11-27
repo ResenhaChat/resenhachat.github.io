@@ -12,7 +12,7 @@ import type Chat from "../Chat.controller";
 import ThemeManager from "../../util/ThemeManager";
 import { showUnreadCount } from "../../util/pwa";
 import type { ThemeMode } from "../../util/ThemeManager";
-import type { ConversationReadPayload } from "../../service/RealtimeEvents";
+import type { ConversationReadPayload, UserUpdatedPayload } from "../../service/RealtimeEvents";
 
 const SEARCH_DEBOUNCE_MS = 250;
 const REFRESH_DEBOUNCE_MS = 300;
@@ -39,6 +39,15 @@ export default class ConversationsSection {
         }
     };
 
+    /** Foto ou perfil de alguém: a lista relê (fotos do par em Direct); se fui eu, relê também meu avatar do topo. */
+    private readonly onUserUpdated = (payload: UserUpdatedPayload): void => {
+        if (payload.UserId === this.controller.getMyId()) {
+            this.controller.refreshElementBinding(this.controller.byId("meAvatar") as Control | undefined);
+        }
+
+        this.refresh();
+    };
+
     public constructor(private readonly controller: Chat) { }
 
     public init(): void {
@@ -49,6 +58,7 @@ export default class ConversationsSection {
         realtime.on("conversation.created", this.onRealtimeChange);
         realtime.on("conversation.updated", this.onRealtimeChange);
         realtime.on("members.changed", this.onRealtimeChange);
+        realtime.on("user.updated", this.onUserUpdated);
         realtime.on("reconnected", this.onRealtimeChange);
         this.applyFilter();
     }
@@ -61,6 +71,7 @@ export default class ConversationsSection {
         realtime.off("conversation.created", this.onRealtimeChange);
         realtime.off("conversation.updated", this.onRealtimeChange);
         realtime.off("members.changed", this.onRealtimeChange);
+        realtime.off("user.updated", this.onUserUpdated);
         realtime.off("reconnected", this.onRealtimeChange);
         window.clearTimeout(this.searchTimer);
         window.clearTimeout(this.refreshTimer);

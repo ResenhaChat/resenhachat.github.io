@@ -49,6 +49,16 @@ sap.ui.define(["../../model/formatter", "../../util/errors"], function (__format
       void this.reloadMessages();
       void this.markAsReadIfVisible();
     };
+
+    /** Só quem está na conversa aberta importa: membro relê os balões; o par do Direct relê também o cabeçalho. Sem rolar. */
+    onUserUpdated = payload => {
+      if (this.hasMember(payload.UserId)) {
+        void this.reloadMessages();
+      }
+      if (payload.UserId === this.peerId) {
+        void this.refreshConversation();
+      }
+    };
     onReconnected = () => {
       if (this.conversationId) {
         this.refreshMessages();
@@ -74,6 +84,7 @@ sap.ui.define(["../../model/formatter", "../../util/errors"], function (__format
       realtime.on("reconnected", this.onReconnected);
       realtime.on("conversation.updated", this.onConversationChanged);
       realtime.on("members.changed", this.onConversationChanged);
+      realtime.on("user.updated", this.onUserUpdated);
       this.unsubscribePresence = this.controller.getPresence().onPresenceChange(() => void this.updateSubtitle());
       document.addEventListener("visibilitychange", this.onVisibilityChange);
     }
@@ -83,6 +94,7 @@ sap.ui.define(["../../model/formatter", "../../util/errors"], function (__format
       realtime.off("reconnected", this.onReconnected);
       realtime.off("conversation.updated", this.onConversationChanged);
       realtime.off("members.changed", this.onConversationChanged);
+      realtime.off("user.updated", this.onUserUpdated);
       this.unsubscribePresence?.();
       document.removeEventListener("visibilitychange", this.onVisibilityChange);
     }
@@ -111,6 +123,11 @@ sap.ui.define(["../../model/formatter", "../../util/errors"], function (__format
       });
       this.refreshHeader();
       void this.loadUnread(conversationId);
+    }
+
+    /** Membro da conversa aberta (lista carregada no cabeçalho): decide se uma mudança de pessoa afeta os balões. */
+    hasMember(userId) {
+      return this.memberIds.includes(userId);
     }
     close() {
       this.conversationId = "";

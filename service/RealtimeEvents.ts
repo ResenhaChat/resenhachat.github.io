@@ -32,6 +32,11 @@ export interface TypingPayload {
     UserId: string;
 }
 
+/** Perfil ou foto de alguém mudou: quem mostra pessoas relê só o que exibe. */
+export interface UserUpdatedPayload {
+    UserId: string;
+}
+
 export type EmptyPayload = Record<string, never>;
 
 /** servidor -> cliente */
@@ -44,6 +49,7 @@ export interface ServerEventMap {
     "conversation.updated": ConversationChangedPayload;
     "members.changed": ConversationChangedPayload;
     "typing": TypingPayload;
+    "user.updated": UserUpdatedPayload;
     "ping": EmptyPayload;
     "pong": EmptyPayload;
 }
@@ -78,6 +84,7 @@ export const SERVER_EVENT_TYPES: ReadonlyArray<keyof ServerEventMap> = [
     "conversation.updated",
     "members.changed",
     "typing",
+    "user.updated",
     "ping",
     "pong"
 ];

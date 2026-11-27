@@ -10,7 +10,7 @@ import type Context from "sap/ui/model/odata/v4/Context";
 import type Chat from "../Chat.controller";
 import formatter from "../../model/formatter";
 import { isNotFound, isUnauthorized } from "../../util/errors";
-import type { ConversationChangedPayload, MessageCreatedPayload } from "../../service/RealtimeEvents";
+import type { ConversationChangedPayload, MessageCreatedPayload, UserUpdatedPayload } from "../../service/RealtimeEvents";
 
 interface MessageRow {
     ID: string;
@@ -75,6 +75,17 @@ export default class MessagesSection {
         void this.markAsReadIfVisible();
     };
 
+    /** Só quem está na conversa aberta importa: membro relê os balões; o par do Direct relê também o cabeçalho. Sem rolar. */
+    private readonly onUserUpdated = (payload: UserUpdatedPayload): void => {
+        if (this.hasMember(payload.UserId)) {
+            void this.reloadMessages();
+        }
+
+        if (payload.UserId === this.peerId) {
+            void this.refreshConversation();
+        }
+    };
+
     private readonly onReconnected = (): void => {
         if (this.conversationId) {
             this.refreshMessages();
@@ -102,6 +113,7 @@ export default class MessagesSection {
         realtime.on("reconnected", this.onReconnected);
         realtime.on("conversation.updated", this.onConversationChanged);
         realtime.on("members.changed", this.onConversationChanged);
+        realtime.on("user.updated", this.onUserUpdated);
         this.unsubscribePresence = this.controller.getPresence().onPresenceChange(() => void this.updateSubtitle());
         document.addEventListener("visibilitychange", this.onVisibilityChange);
     }
@@ -113,6 +125,7 @@ export default class MessagesSection {
         realtime.off("reconnected", this.onReconnected);
         realtime.off("conversation.updated", this.onConversationChanged);
         realtime.off("members.changed", this.onConversationChanged);
+        realtime.off("user.updated", this.onUserUpdated);
         this.unsubscribePresence?.();
         document.removeEventListener("visibilitychange", this.onVisibilityChange);
     }
@@ -144,6 +157,11 @@ export default class MessagesSection {
 
         this.refreshHeader();
         void this.loadUnread(conversationId);
+    }
+
+    /** Membro da conversa aberta (lista carregada no cabeçalho): decide se uma mudança de pessoa afeta os balões. */
+    public hasMember(userId: string): boolean {
+        return this.memberIds.includes(userId);
     }
 
     public close(): void {

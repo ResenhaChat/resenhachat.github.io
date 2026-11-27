@@ -11,14 +11,38 @@ sap.ui.define(["sap/ui/model/Filter", "sap/ui/model/FilterOperator"], function (
     constructor(model) {
       this.model = model;
     }
-    async sendMessage(ConversationId, Text, ReplyToId) {
+
+    /** Com UploadId, Text é a legenda opcional: sem legenda o parâmetro é omitido. */
+    async sendMessage(ConversationId, Text, ReplyToId, UploadId) {
       const operation = this.model.bindContext("/SendMessage(...)");
       operation.setParameter("Conversation_ID", ConversationId);
-      operation.setParameter("Text", Text);
+      if (Text) {
+        operation.setParameter("Text", Text);
+      }
       if (ReplyToId) {
         operation.setParameter("ReplyTo_ID", ReplyToId);
       }
+      if (UploadId) {
+        operation.setParameter("Upload_ID", UploadId);
+      }
       await operation.invoke();
+    }
+
+    /** Reserva um upload e devolve o ID para enviar o binário (Uploads(<id>)/Content) e a miniatura do vídeo. */
+    async createUpload(input) {
+      const parameters = {
+        Conversation_ID: input.ConversationId,
+        Kind: input.Kind,
+        MimeType: input.MimeType,
+        FileName: input.FileName,
+        Size: input.Size,
+        Width: input.Width,
+        Height: input.Height,
+        DurationSeconds: input.DurationSeconds
+      };
+      const definedParameters = Object.fromEntries(Object.entries(parameters).filter(([, value]) => value !== undefined));
+      const upload = await this.invokeWithResult("CreateUpload", definedParameters);
+      return upload.ID;
     }
     async markAsRead(ConversationId) {
       await this.invoke("MarkAsRead", {

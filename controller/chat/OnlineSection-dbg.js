@@ -7,15 +7,26 @@ sap.ui.define(["sap/ui/model/Filter", "sap/ui/model/FilterOperator"], function (
    */
   class OnlineSection {
     onPresenceChange = () => this.applyFilter();
+
+    /** Só quem está online aparece na faixa: relê a binding se a pessoa que mudou estiver nela (suspensa não consulta). */
+    onUserUpdated = payload => {
+      const online = this.controller.getPresence().getProperty("/online");
+      const binding = this.getBinding();
+      if (online?.[payload.UserId] && binding && !binding.isSuspended()) {
+        binding.refresh();
+      }
+    };
     constructor(controller) {
       this.controller = controller;
     }
     init() {
       this.unsubscribe = this.controller.getPresence().onPresenceChange(this.onPresenceChange);
+      this.controller.getRealtime().on("user.updated", this.onUserUpdated);
       this.applyFilter();
     }
     destroy() {
       this.unsubscribe?.();
+      this.controller.getRealtime().off("user.updated", this.onUserUpdated);
     }
     applyFilter() {
       const binding = this.getBinding();

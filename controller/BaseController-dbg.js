@@ -63,6 +63,9 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/UIComponent", "sap/m/M
       view?.addDependent(dialog);
       return dialog;
     },
+    /** Relê só o contexto de um controle bound a um elemento OData (ex.: avatar bound a /Me(<id>)). */refreshElementBinding: function _refreshElementBinding(control) {
+      control?.getElementBinding()?.refresh();
+    },
     getMyId: function _getMyId() {
       return this.getSessionModel().getProperty("/user/ID");
     },

@@ -1,4 +1,4 @@
-sap.ui.define(["./BaseController", "sap/ui/Device", "./chat/ConversationsSection", "./chat/MessagesSection", "./chat/ComposerSection", "./chat/ProfileSection", "./chat/OnlineSection", "./chat/InstallSection", "./chat/NotificationsSection", "./chat/ConversationActionsSection", "./chat/NewChatSection", "./chat/NewConversationSection", "./chat/ExploreChannelsSection", "./chat/MembersSection", "./chat/DetailsSection", "../util/errors"], function (__BaseController, Device, __ConversationsSection, __MessagesSection, __ComposerSection, __ProfileSection, __OnlineSection, __InstallSection, __NotificationsSection, __ConversationActionsSection, __NewChatSection, __NewConversationSection, __ExploreChannelsSection, __MembersSection, __DetailsSection, ___util_errors) {
+sap.ui.define(["./BaseController", "sap/ui/Device", "./chat/ConversationsSection", "./chat/MessagesSection", "./chat/ComposerSection", "./chat/ProfileSection", "./chat/OnlineSection", "./chat/InstallSection", "./chat/NotificationsSection", "./chat/ConversationActionsSection", "./chat/NewChatSection", "./chat/NewConversationSection", "./chat/ExploreChannelsSection", "./chat/MembersSection", "./chat/DetailsSection", "./chat/MediaSection", "../util/errors"], function (__BaseController, Device, __ConversationsSection, __MessagesSection, __ComposerSection, __ProfileSection, __OnlineSection, __InstallSection, __NotificationsSection, __ConversationActionsSection, __NewChatSection, __NewConversationSection, __ExploreChannelsSection, __MembersSection, __DetailsSection, __MediaSection, ___util_errors) {
   "use strict";
 
   function _interopRequireDefault(obj) {
@@ -18,6 +18,7 @@ sap.ui.define(["./BaseController", "sap/ui/Device", "./chat/ConversationsSection
   const ExploreChannelsSection = _interopRequireDefault(__ExploreChannelsSection);
   const MembersSection = _interopRequireDefault(__MembersSection);
   const DetailsSection = _interopRequireDefault(__DetailsSection);
+  const MediaSection = _interopRequireDefault(__MediaSection);
   const isUnauthorized = ___util_errors["isUnauthorized"];
   const MOBILE_LIST = "list";
   const MOBILE_CHAT = "chat";
@@ -42,6 +43,7 @@ sap.ui.define(["./BaseController", "sap/ui/Device", "./chat/ConversationsSection
       this.explore = new ExploreChannelsSection(this);
       this.members = new MembersSection(this);
       this.details = new DetailsSection(this);
+      this.media = new MediaSection(this);
       this.lastUnauthorizedRetry = 0;
       /** Lista de conversas carregada: atualiza o contador de não lidas (título e selo) e trata o 401. */
       this.onConversationsDataReceived = event => {
@@ -96,6 +98,8 @@ sap.ui.define(["./BaseController", "sap/ui/Device", "./chat/ConversationsSection
       this.composer.init();
       this.online.init();
       this.notifications.init();
+      this.details.init();
+      this.media.init();
     },
     onExit: function _onExit() {
       this.getRouter().getRoute("chat")?.detachPatternMatched(this.onChatMatched);
@@ -111,6 +115,7 @@ sap.ui.define(["./BaseController", "sap/ui/Device", "./chat/ConversationsSection
       this.newConversation.destroy();
       this.explore.destroy();
       this.members.destroy();
+      this.media.destroy();
     },
     /** Avatar do cabeçalho lê nome e id do próprio usuário em /Me(<id>). */bindOwnAvatar: function _bindOwnAvatar() {
       const userId = this.getAuth().getUser()?.ID;
