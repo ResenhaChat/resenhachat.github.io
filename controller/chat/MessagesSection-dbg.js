@@ -242,7 +242,9 @@ sap.ui.define(["../../model/formatter", "../../util/errors"], function (__format
       const header = binding?.getHeaderContext();
       try {
         if (header) {
-          await header.requestSideEffects([""]);
+          // "$auto" explícito: sem ele o pedido herda o update group "conversation" (deferred) da página e fica preso
+          // até um submitBatch que nunca vem.
+          await header.requestSideEffects([""], "$auto");
         } else {
           binding?.refresh();
         }
