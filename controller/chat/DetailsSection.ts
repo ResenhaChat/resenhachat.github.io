@@ -102,6 +102,7 @@ export default class DetailsSection {
 
         this.resetPendingChanges();
         this.releaseMembership();
+        this.bindPeer(null);
         this.controller.getUiModel().setProperty("/detailsOpen", true);
         this.getPanel().setBindingContext(context);
         this.onFieldChange();
@@ -158,9 +159,13 @@ export default class DetailsSection {
 
         if (peerId) {
             peerBox.bindElement({ path: `/People(${peerId})`, parameters: { $select: "ID,DisplayName,Username,About,LastSeenAt" } });
-        } else {
-            peerBox.unbindElement();
+            return;
         }
+
+        // Contexto null explícito: sem ele o bloco herdaria /Conversations e pediria DisplayName etc. lá,
+        // o que derruba o batch (membros e rodapé não carregam).
+        peerBox.unbindElement();
+        peerBox.setBindingContext(NO_CONTEXT);
     }
 
     private releaseMembership(): void {

@@ -84,6 +84,7 @@ sap.ui.define(["../../util/errors"], function (____util_errors) {
       }
       this.resetPendingChanges();
       this.releaseMembership();
+      this.bindPeer(null);
       this.controller.getUiModel().setProperty("/detailsOpen", true);
       this.getPanel().setBindingContext(context);
       this.onFieldChange();
@@ -136,9 +137,13 @@ sap.ui.define(["../../util/errors"], function (____util_errors) {
             $select: "ID,DisplayName,Username,About,LastSeenAt"
           }
         });
-      } else {
-        peerBox.unbindElement();
+        return;
       }
+
+      // Contexto null explícito: sem ele o bloco herdaria /Conversations e pediria DisplayName etc. lá,
+      // o que derruba o batch (membros e rodapé não carregam).
+      peerBox.unbindElement();
+      peerBox.setBindingContext(NO_CONTEXT);
     }
     releaseMembership() {
       this.controller.byId("detailsFooter").setBindingContext(NO_CONTEXT);
