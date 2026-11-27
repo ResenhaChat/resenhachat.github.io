@@ -1,0 +1,23 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+>
+    <Dialog id="mediaViewerDialog" showHeader="false" stretch="true" class="rsMediaViewer" afterClose=".onViewerClosed">
+        <content>
+            <VBox class="rsViewerStage" renderType="Bare" alignItems="Center" justifyContent="Center">
+                <HBox class="rsViewerBar" renderType="Bare" alignItems="Center" justifyContent="SpaceBetween">
+                    <Text text="{compose>/fileName}" maxLines="1" class="rsViewerName" />
+                    <HBox class="rsViewerActions" renderType="Bare" alignItems="Center">
+                        <Button id="viewerDownload" icon="sap-icon://download" type="Transparent" class="rsViewerBtn"
+                            tooltip="{i18n>download}" press=".onDownloadViewed" />
+                        <Button id="viewerClose" icon="sap-icon://decline" type="Transparent" class="rsViewerBtn"
+                            tooltip="{i18n>closeDialog}" press=".onCloseViewer" />
+                    </HBox>
+                </HBox>
+                <Image src="{compose>/imageUrl}" densityAware="false" class="rsViewerImage" visible="{= !!${compose>/imageUrl} }" />
+                <!-- sanitizeContent desligado pelo mesmo motivo da prévia: o HTML é gerado aqui com encodeXML. -->
+                <core:HTML content="{compose>/videoHtml}" sanitizeContent="false" class="rsViewerVideo" visible="{= !!${compose>/videoHtml} }" />
+            </VBox>
+        </content>
+    </Dialog>
+</core:FragmentDefinition>

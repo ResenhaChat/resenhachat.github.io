@@ -8,7 +8,8 @@
             <VBox class="rsProfileBody" renderType="Bare">
                 <VBox class="rsProfileHero" renderType="Bare">
                     <VBox class="rsRing rsProfileRing" renderType="Bare">
-                        <Avatar displaySize="XL" class="rsProfileAvatar"
+                        <Avatar id="profileAvatar" displaySize="XL" class="rsProfileAvatar" press=".onAvatarPress" tooltip="{i18n>changePhoto}" badgeIcon="sap-icon://camera"
+                            src="{parts: [{path: 'ID', targetType: 'any'}, {path: 'AvatarMimeType', targetType: 'any'}, {path: 'AvatarVersion', targetType: 'any'}, {path: 'session>/mediaToken'}], formatter: '.formatter.meAvatarSrc'}"
                             initials="{path: 'DisplayName', targetType: 'any', formatter: '.formatter.initials'}"
                             backgroundColor="{path: 'ID', targetType: 'any', formatter: '.formatter.accent'}" />
                     </VBox>
@@ -32,5 +33,11 @@
         <endButton>
             <Button id="profileCancelButton" text="{i18n>cancel}" type="Transparent" press=".onCancel" class="rsGhostBtn" />
         </endButton>
+        <dependents>
+            <Menu id="profileAvatarMenu">
+                <MenuItem id="profilePhotoChange" text="{i18n>changePhoto}" icon="sap-icon://camera" press=".onChangePhoto" />
+                <MenuItem id="profilePhotoRemove" text="{i18n>removePhoto}" icon="sap-icon://delete" press=".onRemovePhoto" />
+            </Menu>
+        </dependents>
     </Dialog>
 </core:FragmentDefinition>

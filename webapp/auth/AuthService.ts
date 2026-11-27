@@ -13,6 +13,10 @@ export interface AuthSession {
     RefreshToken: string;
     ExpiresAt: number;
     User: AuthUser;
+    /** Token de leitura de mídia (query `mt`). Ausente em sessões gravadas antes da Fase 3a. */
+    MediaToken?: string;
+    /** Epoch em milissegundos (contrato do backend). */
+    MediaTokenExpiresAt?: number;
 }
 
 export interface RegisterInput {
@@ -32,6 +36,8 @@ interface AuthResponse {
     RefreshToken: string;
     ExpiresIn: number;
     User: AuthUser;
+    MediaToken?: string;
+    MediaTokenExpiresAt?: number;
 }
 
 interface ErrorBody {
@@ -46,6 +52,7 @@ const REFRESH_MARGIN_MS = 60_000;
 const MIN_REFRESH_DELAY_MS = 5_000;
 const RETRY_DELAY_MS = 15_000;
 const NETWORK_FAILURE_STATUS = 0;
+const MEDIA_TOKEN_RENEW_MARGIN_MS = 60 * 60 * 1000;
 
 export class AuthError extends Error {
 
@@ -79,12 +86,31 @@ function readStoredSession(): AuthSession | null {
     }
 }
 
-function toSession(response: AuthResponse): AuthSession {
+function hasFreshMediaToken(session: AuthSession): boolean {
+    return !!session.MediaToken && (session.MediaTokenExpiresAt ?? 0) - Date.now() > MEDIA_TOKEN_RENEW_MARGIN_MS;
+}
+
+/** Só exige renovação de sessão que já teve token de mídia; backend sem o campo segue sem foto, sem loop de refresh. */
+function mediaTokenNeedsRenewal(session: AuthSession): boolean {
+    return !!session.MediaToken && !hasFreshMediaToken(session);
+}
+
+/** Enquanto faltar mais de 1 h, o token de mídia atual é mantido: URLs estáveis e cache do navegador válido. */
+function mediaTokenFor(response: AuthResponse, current: AuthSession | null): Pick<AuthSession, "MediaToken" | "MediaTokenExpiresAt"> {
+    if (current && current.User.ID === response.User.ID && hasFreshMediaToken(current)) {
+        return { MediaToken: current.MediaToken, MediaTokenExpiresAt: current.MediaTokenExpiresAt };
+    }
+
+    return { MediaToken: response.MediaToken, MediaTokenExpiresAt: response.MediaTokenExpiresAt };
+}
+
+function toSession(response: AuthResponse, current: AuthSession | null): AuthSession {
     return {
         AccessToken: response.AccessToken,
         RefreshToken: response.RefreshToken,
         ExpiresAt: Date.now() + response.ExpiresIn * 1000,
-        User: response.User
+        User: response.User,
+        ...mediaTokenFor(response, current)
     };
 }
 
@@ -128,6 +154,10 @@ export default class AuthService {
         return this.session?.AccessToken ?? null;
     }
 
+    public getMediaToken(): string | null {
+        return this.session?.MediaToken ?? null;
+    }
+
     public hasSession(): boolean {
         return this.session !== null;
     }
@@ -162,7 +192,7 @@ export default class AuthService {
             return false;
         }
 
-        if (this.session.ExpiresAt - Date.now() > REFRESH_MARGIN_MS) {
+        if (this.session.ExpiresAt - Date.now() > REFRESH_MARGIN_MS && !mediaTokenNeedsRenewal(this.session)) {
             this.scheduleRefresh(this.session.ExpiresAt - Date.now() - REFRESH_MARGIN_MS);
             return true;
         }
@@ -278,7 +308,7 @@ export default class AuthService {
     }
 
     private applyResponse(response: AuthResponse): void {
-        const session = toSession(response);
+        const session = toSession(response, this.session);
 
         this.session = session;
         this.persist();

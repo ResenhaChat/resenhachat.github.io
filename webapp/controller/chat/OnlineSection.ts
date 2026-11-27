@@ -2,6 +2,7 @@ import Filter from "sap/ui/model/Filter";
 import FilterOperator from "sap/ui/model/FilterOperator";
 import type HBox from "sap/m/HBox";
 import type ODataListBinding from "sap/ui/model/odata/v4/ODataListBinding";
+import type { UserUpdatedPayload } from "../../service/RealtimeEvents";
 import type Chat from "../Chat.controller";
 
 /**
@@ -16,15 +17,27 @@ export default class OnlineSection {
 
     private readonly onPresenceChange = (): void => this.applyFilter();
 
+    /** Só quem está online aparece na faixa: relê a binding se a pessoa que mudou estiver nela (suspensa não consulta). */
+    private readonly onUserUpdated = (payload: UserUpdatedPayload): void => {
+        const online = this.controller.getPresence().getProperty("/online") as Record<string, boolean> | undefined;
+        const binding = this.getBinding();
+
+        if (online?.[payload.UserId] && binding && !binding.isSuspended()) {
+            binding.refresh();
+        }
+    };
+
     public constructor(private readonly controller: Chat) { }
 
     public init(): void {
         this.unsubscribe = this.controller.getPresence().onPresenceChange(this.onPresenceChange);
+        this.controller.getRealtime().on("user.updated", this.onUserUpdated);
         this.applyFilter();
     }
 
     public destroy(): void {
         this.unsubscribe?.();
+        this.controller.getRealtime().off("user.updated", this.onUserUpdated);
     }
 
     private applyFilter(): void {

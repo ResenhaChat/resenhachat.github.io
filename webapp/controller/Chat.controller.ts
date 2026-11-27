@@ -17,6 +17,7 @@ import NewConversationSection from "./chat/NewConversationSection";
 import ExploreChannelsSection from "./chat/ExploreChannelsSection";
 import MembersSection from "./chat/MembersSection";
 import DetailsSection from "./chat/DetailsSection";
+import MediaSection from "./chat/MediaSection";
 import { isUnauthorized } from "../util/errors";
 
 const MOBILE_LIST = "list";
@@ -54,6 +55,8 @@ export default class Chat extends BaseController {
 
     public readonly details = new DetailsSection(this);
 
+    public readonly media = new MediaSection(this);
+
     private lastUnauthorizedRetry = 0;
 
     public onInit(): void {
@@ -65,7 +68,9 @@ export default class Chat extends BaseController {
         this.messages.init();
         this.composer.init();
         this.online.init();
-        this.notifications.init();
+        this.notifications.init();
+        this.details.init();
+        this.media.init();
     }
 
     public onExit(): void {
@@ -82,6 +87,7 @@ export default class Chat extends BaseController {
         this.newConversation.destroy();
         this.explore.destroy();
         this.members.destroy();
+        this.media.destroy();
     }
 
     /** Lista de conversas carregada: atualiza o contador de não lidas (título e selo) e trata o 401. */

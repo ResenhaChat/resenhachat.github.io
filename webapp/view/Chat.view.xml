@@ -24,6 +24,7 @@
                         icon="{path: 'ui>/darkMode', formatter: '.formatter.themeIcon'}"
                         tooltip="{i18n>themeToggle}" press=".conversations.onToggleTheme" />
                     <Avatar id="meAvatar" displaySize="S" class="rsMeAvatar" tooltip="{i18n>menuTooltip}"
+                        src="{parts: [{path: 'ID', targetType: 'any'}, {path: 'AvatarMimeType', targetType: 'any'}, {path: 'AvatarVersion', targetType: 'any'}, {path: 'session>/mediaToken'}], formatter: '.formatter.meAvatarSrc'}"
                         initials="{path: 'DisplayName', targetType: 'any', formatter: '.formatter.initials'}"
                         backgroundColor="{path: 'ID', targetType: 'any', formatter: '.formatter.accent'}"
                         press=".conversations.onOpenMenu" />
@@ -41,10 +42,11 @@
                 <Text text="{i18n>onlineNow}" class="rsSectionLabel" />
                 <ScrollContainer id="onlineScroll" width="100%" horizontal="true" vertical="false" class="rsOnlineScroll">
                     <HBox id="onlineList" class="rsOnlineList" renderType="Bare"
-                        items="{ path: '/People', suspended: true, parameters: { $select: 'DisplayName' } }">
+                        items="{ path: '/People', suspended: true, parameters: { $select: 'DisplayName,AvatarMimeType,AvatarVersion' } }">
                         <VBox class="rsOnlineItem" renderType="Bare">
                             <VBox class="rsRing" renderType="Bare">
                                 <Avatar displaySize="XS" class="rsRingAvatar"
+                                    src="{parts: [{path: 'ID', targetType: 'any'}, {path: 'AvatarMimeType', targetType: 'any'}, {path: 'AvatarVersion', targetType: 'any'}, {path: 'session>/mediaToken'}], formatter: '.formatter.personAvatarSrc'}"
                                     initials="{path: 'DisplayName', targetType: 'any', formatter: '.formatter.initials'}"
                                     backgroundColor="{path: 'ID', targetType: 'any', formatter: '.formatter.accent'}" />
                             </VBox>
@@ -85,7 +87,7 @@
                         parameters: {
                             $$updateGroupId: 'membership',
                             $orderby: 'IsPinned desc,Conversation/LastMessageAt desc',
-                            $expand: 'Conversation($select=ID,Kind,Name,Description,LastMessage,LastMessageAt,OnlyAdminsCanPost,IsPublic)'
+                            $expand: 'Conversation($select=ID,Kind,Name,Description,LastMessage,LastMessageAt,OnlyAdminsCanPost,IsPublic,AvatarMimeType,AvatarVersion,DirectPeerHasAvatar,DirectPeerAvatarVersion)'
                         },
                         events: { dataReceived: '.onConversationsDataReceived' }
                     }">
@@ -96,7 +98,16 @@
                         <HBox class="rsConvRow" renderType="Bare" alignItems="Center">
                             <HBox class="rsAvatarWrap rsConvAvatarWrap" renderType="Bare">
                                 <Avatar class="rsConvAvatar" displaySize="S"
-                                    src="{path: 'Conversation/Kind', targetType: 'any', formatter: '.formatter.conversationIcon'}"
+                                    src="{parts: [
+                                        {path: 'Conversation/Kind', targetType: 'any'},
+                                        {path: 'Conversation_ID', targetType: 'any'},
+                                        {path: 'Conversation/AvatarMimeType', targetType: 'any'},
+                                        {path: 'Conversation/AvatarVersion', targetType: 'any'},
+                                        {path: 'DirectPeer_ID', targetType: 'any'},
+                                        {path: 'Conversation/DirectPeerHasAvatar', targetType: 'any'},
+                                        {path: 'Conversation/DirectPeerAvatarVersion', targetType: 'any'},
+                                        {path: 'session>/mediaToken'}
+                                    ], formatter: '.formatter.conversationAvatarSrc'}"
                                     initials="{path: 'Title', targetType: 'any', formatter: '.formatter.initials'}"
                                     backgroundColor="{path: 'Conversation_ID', targetType: 'any', formatter: '.formatter.accent'}" />
                                 <Text class="rsOnlineDot"
@@ -147,6 +158,11 @@
             </VBox>
 
             <VBox id="chatColumn" class="rsColumn rsChatColumn" renderType="Bare" visible="{= !!${ui>/conversationId} }">
+                <VBox id="dropOverlay" class="rsDropOverlay" renderType="Bare" alignItems="Center" justifyContent="Center"
+                    visible="{ui>/dragging}">
+                    <core:Icon src="sap-icon://attachment" decorative="true" class="rsDropIcon" />
+                    <Title text="{i18n>dropToSend}" titleStyle="H4" />
+                </VBox>
                 <HBox id="chatHeader" class="rsChatHeader" renderType="Bare" alignItems="Center">
                     <customData>
                         <core:CustomData key="rs-kind" value="{= ${Kind} || 'None' }" writeToDom="true" />
@@ -156,7 +172,16 @@
                     <HBox id="chatTitle" class="rsChatTitleArea" renderType="Bare" alignItems="Center">
                         <HBox class="rsAvatarWrap rsChatAvatarWrap" renderType="Bare">
                             <Avatar displaySize="S" class="rsChatAvatar"
-                                src="{path: 'Kind', targetType: 'any', formatter: '.formatter.conversationIcon'}"
+                                src="{parts: [
+                                    {path: 'Kind', targetType: 'any'},
+                                    {path: 'ID', targetType: 'any'},
+                                    {path: 'AvatarMimeType', targetType: 'any'},
+                                    {path: 'AvatarVersion', targetType: 'any'},
+                                    {path: 'DirectPeer_ID', targetType: 'any'},
+                                    {path: 'DirectPeerHasAvatar', targetType: 'any'},
+                                    {path: 'DirectPeerAvatarVersion', targetType: 'any'},
+                                    {path: 'session>/mediaToken'}
+                                ], formatter: '.formatter.conversationAvatarSrc'}"
                                 initials="{path: 'Title', targetType: 'any', formatter: '.formatter.initials'}"
                                 backgroundColor="{path: 'ID', targetType: 'any', formatter: '.formatter.accent'}" />
                             <Text class="rsOnlineDot"
@@ -192,7 +217,7 @@
                             parameters: {
                                 $$ownRequest: true,
                                 $orderby: 'createdAt desc',
-                                $expand: 'Sender($select=ID,DisplayName,Username)'
+                                $expand: 'Sender($select=ID,DisplayName,Username,AvatarMimeType,AvatarVersion),Attachment($select=ID,Kind,MimeType,FileName,Size,Width,Height,DurationSeconds,ThumbnailMimeType)'
                             },
                             events: { dataReceived: '.onDataReceived' }
                         }">
@@ -207,6 +232,7 @@
                                     visible="{path: 'Kind', targetType: 'any', formatter: '.formatter.isNotSystem'}">
                                     <HBox class="rsAvatarWrap" renderType="Bare">
                                         <Avatar displaySize="XS"
+                                            src="{parts: [{path: 'Sender/ID', targetType: 'any'}, {path: 'Sender/AvatarMimeType', targetType: 'any'}, {path: 'Sender/AvatarVersion', targetType: 'any'}, {path: 'session>/mediaToken'}], formatter: '.formatter.personAvatarSrc'}"
                                             initials="{path: 'Sender/DisplayName', targetType: 'any', formatter: '.formatter.initials'}"
                                             backgroundColor="{path: 'Sender/ID', targetType: 'any', formatter: '.formatter.accent'}" />
                                         <Text class="rsOnlineDot"
@@ -214,6 +240,32 @@
                                     </HBox>
                                     <VBox class="rsBubble" renderType="Bare">
                                         <Text text="{Sender/DisplayName}" maxLines="1" class="rsSender" />
+                                        <VBox class="rsMedia" renderType="Bare"
+                                            visible="{parts: [{path: 'Kind', targetType: 'any'}, {path: 'DeletedAt', targetType: 'any'}], formatter: '.formatter.isMediaMessage'}">
+                                            <VBox class="rsMediaFrame" renderType="Bare"
+                                                visible="{parts: [{path: 'Kind', targetType: 'any'}, {path: 'DeletedAt', targetType: 'any'}], formatter: '.formatter.isPictureMessage'}">
+                                                <Image class="rsMediaThumb" densityAware="false" alt="{i18n>openMedia}" press=".media.onOpenViewer"
+                                                    src="{parts: [{path: 'Attachment/ID', targetType: 'any'}, {path: 'Attachment/ThumbnailMimeType', targetType: 'any'}, {path: 'Kind', targetType: 'any'}, {path: 'session>/mediaToken'}], formatter: '.formatter.attachmentThumbSrc'}"
+                                                    width="{parts: [{path: 'Attachment/Width', targetType: 'any'}, {path: 'Attachment/Height', targetType: 'any'}], formatter: '.formatter.mediaWidth'}" />
+                                                <HBox class="rsMediaPlay" renderType="Bare" alignItems="Center" justifyContent="Center"
+                                                    visible="{parts: [{path: 'Kind', targetType: 'any'}, {path: 'DeletedAt', targetType: 'any'}], formatter: '.formatter.isVideoMessage'}">
+                                                    <core:Icon src="sap-icon://media-play" decorative="true" class="rsMediaPlayIcon" />
+                                                </HBox>
+                                                <Text class="rsMediaDuration"
+                                                    visible="{parts: [{path: 'Kind', targetType: 'any'}, {path: 'DeletedAt', targetType: 'any'}], formatter: '.formatter.isVideoMessage'}"
+                                                    text="{path: 'Attachment/DurationSeconds', targetType: 'any', formatter: '.formatter.durationLabel'}" />
+                                            </VBox>
+                                            <HBox class="rsMediaFile" renderType="Bare" alignItems="Center"
+                                                visible="{parts: [{path: 'Kind', targetType: 'any'}, {path: 'DeletedAt', targetType: 'any'}], formatter: '.formatter.isFileMessage'}">
+                                                <core:Icon src="{path: 'Attachment/MimeType', targetType: 'any', formatter: '.formatter.fileIcon'}" decorative="true" class="rsMediaFileIcon" />
+                                                <VBox class="rsMediaFileBody" renderType="Bare">
+                                                    <Text text="{Attachment/FileName}" maxLines="1" class="rsMediaFileName" />
+                                                    <Text text="{path: 'Attachment/Size', targetType: 'any', formatter: '.formatter.fileSize'}" class="rsMediaFileSize" />
+                                                </VBox>
+                                                <Button icon="sap-icon://download" type="Transparent" class="rsRoundBtn rsMediaDownload"
+                                                    tooltip="{i18n>download}" press=".media.onDownload" />
+                                            </HBox>
+                                        </VBox>
                                         <Text class="rsText"
                                             text="{parts: [{path: 'Text', targetType: 'any'}, {path: 'DeletedAt', targetType: 'any'}], formatter: '.formatter.messageText'}" />
                                         <HBox class="rsMeta" renderType="Bare" justifyContent="End" alignItems="Center">
@@ -238,6 +290,8 @@
                 <HBox id="composer" class="rsComposer" renderType="Bare" alignItems="End"
                     visible="{parts: [{path: 'OnlyAdminsCanPost', targetType: 'any'}, {path: 'MyRole', targetType: 'any'}], formatter: '.formatter.canPostHere'}">
                     <core:InvisibleText id="composerLabel" text="{i18n>composerPlaceholder}" />
+                    <Button id="attachButton" class="rsRoundBtn rsAttachBtn" type="Transparent" icon="sap-icon://attachment"
+                        tooltip="{i18n>attach}" press=".media.onOpenAttachMenu" />
                     <TextArea id="composerInput" class="rsComposerInput" width="100%" rows="1" growing="true"
                         growingMaxLines="6" valueLiveUpdate="true" value="{ui>/draft}" ariaLabelledBy="composerLabel"
                         placeholder="{i18n>composerPlaceholder}" liveChange=".composer.onLiveChange" />
@@ -256,6 +310,16 @@
         <core:Fragment fragmentName="apps.dflc.resenha.view.fragments.DetailsPanel" type="XML" />
 
         <dependents>
+            <Menu id="attachMenu">
+                <MenuItem id="attachPhoto" text="{i18n>photoOrVideo}" icon="sap-icon://attachment-photo" press=".media.onPickMedia" />
+                <MenuItem id="attachFile" text="{i18n>file}" icon="sap-icon://attachment" press=".media.onPickFile" />
+            </Menu>
+
+            <Menu id="groupAvatarMenu">
+                <MenuItem id="groupPhotoChange" text="{i18n>changePhoto}" icon="sap-icon://camera" press=".details.onChangeGroupPhoto" />
+                <MenuItem id="groupPhotoRemove" text="{i18n>removePhoto}" icon="sap-icon://delete" press=".details.onRemoveGroupPhoto" />
+            </Menu>
+
             <Menu id="userMenu">
                 <MenuItem id="menuProfile" text="{i18n>menuProfile}" icon="sap-icon://employee" press=".profile.onOpen" />
                 <MenuItem id="menuInstall" text="{i18n>menuInstall}" icon="sap-icon://download" visible="{pwa>/canInstall}"

@@ -15,6 +15,7 @@
                         <HBox class="rsPersonRow" renderType="Bare" alignItems="Center">
                             <HBox class="rsAvatarWrap" renderType="Bare">
                                 <Avatar displaySize="S" initials="{path: 'DisplayName', targetType: 'any', formatter: '.formatter.initials'}"
+                                    src="{parts: [{path: 'ID', targetType: 'any'}, {path: 'AvatarMimeType', targetType: 'any'}, {path: 'AvatarVersion', targetType: 'any'}, {path: 'session>/mediaToken'}], formatter: '.formatter.personAvatarSrc'}"
                                     backgroundColor="{path: 'ID', targetType: 'any', formatter: '.formatter.accent'}" />
                                 <Text class="rsOnlineDot"
                                     visible="{parts: [{path: 'ID', targetType: 'any'}, {path: 'presence>/online'}], formatter: '.formatter.isOnline'}" />

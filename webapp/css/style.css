@@ -2163,3 +2163,329 @@ body {
 .sapMDialog.sapMMenu.sapMDialogPhone .sapMMenuItemSeparator {
     border-color: var(--rs-border);
 }
+
+/* ---------- Fase 3a: mídia (anexos, miniaturas, prévia, visualizador e fotos) ---------- */
+:root {
+    --rs-viewer-bg: #0B0C10;
+    --rs-viewer-text: #F4F5FA;
+}
+
+.rsMedia {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 4px;
+    max-width: 100%;
+}
+
+.rsMediaFrame {
+    position: relative;
+    align-self: flex-start;
+    max-width: 100%;
+    border-radius: var(--rs-radius-sm);
+    overflow: hidden;
+    background: var(--rs-surface-2);
+}
+
+.rsMediaThumb.sapMImg {
+    display: block;
+    max-width: 100%;
+    border-radius: var(--rs-radius-sm);
+    object-fit: cover;
+    cursor: pointer;
+}
+
+.rsMediaPlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--rs-text) 18%, transparent);
+}
+
+.rsMediaPlayIcon {
+    font-size: 2.25rem;
+    color: var(--rs-on-brand);
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .35));
+}
+
+.rsMediaDuration.sapMText {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-variant-numeric: tabular-nums;
+    background: color-mix(in srgb, var(--rs-bg) 80%, transparent);
+    color: var(--rs-text);
+}
+
+.rsMediaFile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 100%;
+    padding: 8px;
+    border-radius: var(--rs-radius-sm);
+    background: var(--rs-surface-2);
+}
+
+.rsMediaFileIcon {
+    flex: none;
+    font-size: 1.75rem;
+    color: var(--rs-brand);
+}
+
+.rsMediaFileBody {
+    flex: 1;
+    min-width: 0;
+}
+
+.rsMediaFileName.sapMText,
+.rsMediaFileSize.sapMText {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rsMediaFileName.sapMText {
+    color: var(--rs-text);
+    font-weight: 600;
+}
+
+.rsMediaFileSize.sapMText {
+    color: var(--rs-text-2);
+    font-size: .75rem;
+}
+
+.rsMediaDownload {
+    flex: none;
+}
+
+.rsMsgItem[data-rs-mine="true"] .rsMediaFile {
+    background: color-mix(in srgb, var(--rs-brand) 14%, var(--rs-surface-2));
+}
+
+.rsAttachBtn {
+    flex: none;
+}
+
+.rsChatColumn {
+    position: relative;
+}
+
+.rsDropOverlay {
+    position: absolute;
+    inset: 8px;
+    z-index: 5;
+    gap: 12px;
+    pointer-events: none;
+    border: 2px dashed var(--rs-brand);
+    border-radius: var(--rs-radius);
+    background: color-mix(in srgb, var(--rs-brand) 12%, var(--rs-bg));
+}
+
+.rsDropIcon {
+    font-size: 2.5rem;
+    color: var(--rs-brand);
+}
+
+.rsPreviewStage {
+    width: 100%;
+    max-height: 50vh;
+    overflow: hidden;
+    border-radius: var(--rs-radius-sm);
+    background: var(--rs-surface-2);
+}
+
+.rsPreviewImage.sapMImg {
+    display: block;
+    width: 100%;
+    max-height: 50vh;
+    object-fit: contain;
+}
+
+.rsPreviewVideo {
+    width: 100%;
+}
+
+.rsPreviewFile {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.rsPreviewFile .rsMediaFileName.sapMText {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.rsVideoEl {
+    display: block;
+    width: 100%;
+    max-height: 50vh;
+}
+
+.rsMediaProgress {
+    gap: 4px;
+    padding-top: 6px;
+}
+
+.rsMediaViewer.sapMDialog,
+.rsMediaViewer .sapMDialogScrollCont,
+.rsMediaViewer .sapMDialogSection {
+    background: var(--rs-viewer-bg);
+    color: var(--rs-viewer-text);
+}
+
+.rsMediaViewer .sapMDialogSection {
+    padding: 0;
+    overflow: hidden;
+}
+
+.rsMediaViewer.sapMDialog {
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    border: 0;
+    border-radius: 0;
+}
+
+.rsMediaViewer .sapMDialogScrollCont,
+.rsMediaViewer .sapMDialogScroll {
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    overflow: hidden;
+}
+
+.rsViewerStage {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 12px 16px;
+}
+
+.rsViewerBar {
+    width: 100%;
+    flex: none;
+    gap: 8px;
+}
+
+.rsViewerName.sapMText {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--rs-viewer-text);
+}
+
+.rsViewerActions {
+    flex: none;
+}
+
+.sapMBtn.rsViewerBtn {
+    color: var(--rs-viewer-text);
+}
+
+.sapMBtn.rsViewerBtn:hover {
+    background: color-mix(in srgb, var(--rs-viewer-text) 12%, transparent);
+}
+
+.rsViewerImage {
+    flex: 1 1 0;
+    width: 100%;
+    min-height: 0;
+}
+
+.rsViewerImage.sapMImg {
+    display: block;
+    width: 100%;
+    height: 0;
+    object-fit: contain;
+}
+
+.rsViewerVideo {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+}
+
+.rsViewerVideo .rsVideoEl {
+    height: 100%;
+    max-height: none;
+    object-fit: contain;
+    background: var(--rs-viewer-bg);
+}
+
+@media (max-width: 599px) {
+    .rsMediaFile,
+    .rsMediaFrame {
+        max-width: 100%;
+    }
+
+    .rsDropOverlay {
+        inset: 4px;
+    }
+}
+
+/* Revisão Fase 3a: miniatura pela largura (altura segue a proporção), progresso e botões do visualizador */
+.rsMediaThumb.sapMImg {
+    height: auto;
+}
+
+.rsMediaProgress .sapMPIBar {
+    background: var(--rs-brand);
+}
+
+.sapMBtn.rsViewerBtn .sapMBtnInner,
+.sapMBtn.rsViewerBtn .sapMBtnInner .sapMBtnIcon,
+.sapMBtn.rsViewerBtn:hover .sapMBtnInner .sapMBtnIcon,
+.sapMBtn.rsViewerBtn .sapMBtnInner:focus .sapMBtnIcon {
+    color: var(--rs-viewer-text);
+}
+
+.sapMBtn.rsViewerBtn .sapMBtnInner {
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    outline: none;
+}
+
+.sapMBtn.rsViewerBtn:hover .sapMBtnInner,
+.sapMBtn.rsViewerBtn .sapMBtnInner:hover {
+    background: color-mix(in srgb, var(--rs-viewer-text) 14%, transparent);
+}
+
+.sapMBtn.rsViewerBtn .sapMBtnInner:focus-visible {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--rs-viewer-text) 60%, transparent);
+}
+
+/* Indicação de foto editável: selo de câmera só quando o usuário pode trocar a foto */
+.sapFAvatar.rsDetailsAvatar .sapFAvatarBadgeIcon,
+.sapFAvatar.rsProfileAvatar .sapFAvatarBadgeIcon {
+    background: var(--rs-brand);
+    color: var(--rs-on-brand);
+    box-shadow: 0 0 0 2px var(--rs-surface);
+}
+
+.sapFAvatar.rsDetailsAvatar .sapFAvatarBadgeIcon .sapUiIcon,
+.sapFAvatar.rsProfileAvatar .sapFAvatarBadgeIcon .sapUiIcon {
+    color: var(--rs-on-brand);
+}
+
+.sapFAvatar.rsDetailsAvatar:not(:has(.sapFAvatarBadgeIcon)) {
+    cursor: default;
+}
+
+.sapFAvatar.rsDetailsAvatar:focus-visible,
+.sapFAvatar.rsProfileAvatar:focus-visible {
+    outline: 2px solid var(--rs-brand);
+    outline-offset: 2px;
+}

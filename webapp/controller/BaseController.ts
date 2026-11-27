@@ -8,6 +8,7 @@ import type Control from "sap/ui/core/Control";
 import type Dialog from "sap/m/Dialog";
 import type Router from "sap/ui/core/routing/Router";
 import type ODataModel from "sap/ui/model/odata/v4/ODataModel";
+import type ODataContextBinding from "sap/ui/model/odata/v4/ODataContextBinding";
 import type ResourceModel from "sap/ui/model/resource/ResourceModel";
 import type ResourceBundle from "sap/base/i18n/ResourceBundle";
 import formatter from "../model/formatter";
@@ -89,6 +90,11 @@ export default abstract class BaseController extends Controller {
         view?.addDependent(dialog);
 
         return dialog;
+    }
+
+    /** Relê só o contexto de um controle bound a um elemento OData (ex.: avatar bound a /Me(<id>)). */
+    public refreshElementBinding(control: Control | undefined): void {
+        (control?.getElementBinding() as ODataContextBinding | null | undefined)?.refresh();
     }
 
     public getMyId(): string {

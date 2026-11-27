@@ -1,0 +1,41 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+>
+    <Dialog id="mediaPreviewDialog" title="{i18n>mediaPreviewTitle}" contentWidth="30rem" stretch="{device>/system/phone}"
+        class="rsPeopleDialog rsMediaPreview" afterClose=".onPreviewClosed">
+        <content>
+            <VBox class="rsPeopleBody" renderType="Bare">
+                <VBox class="rsPreviewStage" renderType="Bare" alignItems="Center" justifyContent="Center">
+                    <Image src="{compose>/previewUrl}" densityAware="false" width="100%" class="rsPreviewImage"
+                        visible="{= ${compose>/kind} === 'Image' }" />
+                    <!-- sanitizeContent desligado: o sanitizer do core:HTML tiraria o src do video; o HTML é nosso e a URL passa por encodeXML. -->
+                    <core:HTML content="{compose>/videoHtml}" sanitizeContent="false" class="rsPreviewVideo" visible="{= ${compose>/kind} === 'Video' }" />
+                    <HBox class="rsMediaFile rsPreviewFile" renderType="Bare" alignItems="Center" visible="{= ${compose>/kind} === 'File' }">
+                        <core:Icon src="{path: 'compose>/mimeType', formatter: '.formatter.fileIcon'}" decorative="true" class="rsMediaFileIcon" />
+                        <VBox class="rsMediaFileBody" renderType="Bare">
+                            <Text text="{compose>/fileName}" maxLines="2" class="rsMediaFileName" />
+                            <Text text="{path: 'compose>/size', formatter: '.formatter.fileSize'}" class="rsMediaFileSize" />
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <TextArea id="mediaCaption" value="{compose>/caption}" rows="2" maxLength="1000" growing="true" growingMaxLines="4"
+                    showExceededText="true" width="100%" class="rsProfileAbout" placeholder="{i18n>captionPlaceholder}"
+                    enabled="{= !${compose>/uploading} }" />
+
+                <VBox class="rsMediaProgress" renderType="Bare" visible="{compose>/uploading}">
+                    <ProgressIndicator percentValue="{compose>/progress}" showValue="false" state="None" width="100%" />
+                    <Text text="{i18n>uploading}" class="rsHint" />
+                </VBox>
+            </VBox>
+        </content>
+        <beginButton>
+            <Button id="mediaSendButton" text="{i18n>send}" type="Emphasized" press=".onSend" class="rsGradientBtn"
+                enabled="{= !${compose>/uploading} }" />
+        </beginButton>
+        <endButton>
+            <Button id="mediaCancelButton" text="{i18n>cancel}" type="Transparent" press=".onCancel" class="rsGhostBtn" />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

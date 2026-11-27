@@ -8,6 +8,7 @@ import AuthService from "./auth/AuthService";
 import type { AuthSession } from "./auth/AuthService";
 import { getRuntimeConfig, loadRuntimeConfig } from "./auth/RuntimeConfig";
 import ChatService from "./service/ChatService";
+import MediaService from "./service/MediaService";
 import PushService from "./service/PushService";
 import RealtimeService from "./service/RealtimeService";
 import PresenceModel from "./model/PresenceModel";
@@ -30,7 +31,8 @@ export interface UiState {
     isTyping: boolean;
     detailsOpen: boolean;
     showArchived: boolean;
-    detailsDirty: boolean;
+    detailsDirty: boolean;
+    dragging: boolean;
     login: {
         mode: "login" | "register";
         login: string;
@@ -55,6 +57,8 @@ export default class Component extends UIComponent {
     };
 
     private chatService?: ChatService;
+
+    private mediaService?: MediaService;
 
     private pushService?: PushService;
 
@@ -84,6 +88,14 @@ export default class Component extends UIComponent {
         }
 
         return this.chatService;
+    }
+
+    public getMediaService(): MediaService {
+        if (!this.mediaService) {
+            throw new Error("Media service is not available before login");
+        }
+
+        return this.mediaService;
     }
 
     public getPushService(): PushService {
@@ -124,7 +136,7 @@ export default class Component extends UIComponent {
         await loadRuntimeConfig();
 
         this.setModel(new JSONModel(Device), "device");
-        this.setModel(new JSONModel({ user: {} }), "session");
+        this.setModel(new JSONModel({ user: {}, mediaToken: "" }), "session");
         this.setModel(new PresenceModel(), "presence");
         this.setModel(this.createUiModel(), "ui");
         this.setModel(createPwaModel(), "pwa");
@@ -160,7 +172,8 @@ export default class Component extends UIComponent {
             isTyping: false,
             detailsOpen: false,
             showArchived: false,
-            detailsDirty: false,
+            detailsDirty: false,
+            dragging: false,
             login: { mode: "login", login: "", password: "", email: "", username: "", displayName: "", error: "" }
         };
 
@@ -191,6 +204,7 @@ export default class Component extends UIComponent {
         }
 
         this.chatModel.changeHttpHeaders({ Authorization: `Bearer ${session.AccessToken}` });
+        this.syncMediaToken(session);
 
         if (session.AccessToken !== this.lastAccessToken) {
             this.lastAccessToken = session.AccessToken;
@@ -206,6 +220,7 @@ export default class Component extends UIComponent {
         const userId = session.User.ID;
 
         (this.getModel("session") as JSONModel).setProperty("/user", { ID: userId });
+        this.syncMediaToken(session);
         this.getPresence().setSelf(userId);
         this.lastAccessToken = session.AccessToken;
 
@@ -219,10 +234,16 @@ export default class Component extends UIComponent {
 
         this.setModel(this.chatModel);
         this.chatService = new ChatService(this.chatModel);
+        this.mediaService = new MediaService(this.chatService, this.getAuth());
         this.pushService = new PushService(this.chatModel);
         this.startRealtime();
         void registerServiceWorker();
         void this.pushService.sync().catch(() => false);
+    }
+
+    /** Token de mídia no modelo session (/mediaToken) para os formatters montarem as URLs de avatar e anexo. */
+    private syncMediaToken(session: AuthSession): void {
+        (this.getModel("session") as JSONModel).setProperty("/mediaToken", session.MediaToken ?? "");
     }
 
     private startRealtime(): void {
