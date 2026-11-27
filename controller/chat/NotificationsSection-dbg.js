@@ -141,7 +141,7 @@ sap.ui.define(["sap/ui/core/Fragment", "sap/m/MessageBox", "../../util/sound", "
     async alertIfNeeded(payload) {
       const myId = this.myId();
       const openId = this.controller.getUiModel().getProperty("/conversationId");
-      if (payload.SenderId === myId || document.visibilityState === "visible" && payload.ConversationId === openId) {
+      if (!payload.SenderId || payload.SenderId === myId || document.visibilityState === "visible" && payload.ConversationId === openId) {
         return;
       }
       try {

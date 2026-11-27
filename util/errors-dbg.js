@@ -4,6 +4,9 @@ sap.ui.define([], function () {
   function isUnauthorized(error) {
     return error?.status === 401;
   }
+  function isNotFound(error) {
+    return error?.status === 404;
+  }
   function errorDetail(error) {
     return error?.message ?? "";
   }
@@ -11,6 +14,7 @@ sap.ui.define([], function () {
     __esModule: true
   };
   __exports.isUnauthorized = isUnauthorized;
+  __exports.isNotFound = isNotFound;
   __exports.errorDetail = errorDetail;
   return __exports;
 });

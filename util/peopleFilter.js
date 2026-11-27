@@ -1,0 +1,2 @@
+sap.ui.define(["sap/ui/model/Filter","sap/ui/model/FilterOperator"],function(e,a){"use strict";function t(t,r,n=[]){const s=[new e({path:"ID",operator:a.NE,value1:r}),...n.map(t=>new e({path:"ID",operator:a.NE,value1:t}))];const i=t.trim();if(i){s.push(new e({filters:[new e({path:"DisplayName",operator:a.Contains,value1:i,caseSensitive:false}),new e({path:"Username",operator:a.Contains,value1:i,caseSensitive:false})],and:false}))}return new e({filters:s,and:true})}var r={__esModule:true};r.peopleFilter=t;return r});
+//# sourceMappingURL=peopleFilter.js.map

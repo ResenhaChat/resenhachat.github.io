@@ -2,8 +2,11 @@ import Controller from "sap/ui/core/mvc/Controller";
 import UIComponent from "sap/ui/core/UIComponent";
 import MessageBox from "sap/m/MessageBox";
 import MessageToast from "sap/m/MessageToast";
+import Fragment from "sap/ui/core/Fragment";
+import JSONModel from "sap/ui/model/json/JSONModel";
+import type Control from "sap/ui/core/Control";
+import type Dialog from "sap/m/Dialog";
 import type Router from "sap/ui/core/routing/Router";
-import type JSONModel from "sap/ui/model/json/JSONModel";
 import type ODataModel from "sap/ui/model/odata/v4/ODataModel";
 import type ResourceModel from "sap/ui/model/resource/ResourceModel";
 import type ResourceBundle from "sap/base/i18n/ResourceBundle";
@@ -66,6 +69,34 @@ export default abstract class BaseController extends Controller {
         const bundle = (this.getAppComponent().getModel("i18n") as ResourceModel).getResourceBundle() as ResourceBundle;
 
         return bundle.getText(key, parameters as string[]) ?? key;
+    }
+
+    /** Controle de um fragmento carregado com id = id da view (dialogs e painéis). */
+    public getFragmentControl<Type extends Control>(id: string): Type {
+        return Fragment.byId(this.getView()?.getId() ?? "", id) as Type;
+    }
+
+    /** Carrega um diálogo de fragmento; o estado de UI do diálogo fica no JSONModel "compose". */
+    public async loadDialog(fragmentName: string, controller: object, state: object): Promise<Dialog> {
+        const view = this.getView();
+        const dialog = await Fragment.load({
+            id: view?.getId(),
+            name: `apps.dflc.resenha.view.fragments.${fragmentName}`,
+            controller
+        }) as Dialog;
+
+        dialog.setModel(new JSONModel(state), "compose");
+        view?.addDependent(dialog);
+
+        return dialog;
+    }
+
+    public getMyId(): string {
+        return this.getSessionModel().getProperty("/user/ID") as string;
+    }
+
+    public getOpenConversationId(): string {
+        return this.getUiModel().getProperty("/conversationId") as string;
     }
 
     public showToast(key: string, parameters?: unknown[]): void {

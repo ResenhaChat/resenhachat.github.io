@@ -1,4 +1,4 @@
-sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/UIComponent", "sap/m/MessageBox", "sap/m/MessageToast", "../model/formatter", "../util/errors"], function (Controller, UIComponent, MessageBox, MessageToast, __formatter, ___util_errors) {
+sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/UIComponent", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/ui/model/json/JSONModel", "../model/formatter", "../util/errors"], function (Controller, UIComponent, MessageBox, MessageToast, Fragment, JSONModel, __formatter, ___util_errors) {
   "use strict";
 
   function _interopRequireDefault(obj) {
@@ -48,6 +48,26 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/UIComponent", "sap/m/M
     getText: function _getText(key, parameters) {
       const bundle = this.getAppComponent().getModel("i18n").getResourceBundle();
       return bundle.getText(key, parameters) ?? key;
+    },
+    /** Controle de um fragmento carregado com id = id da view (dialogs e painéis). */getFragmentControl: function _getFragmentControl(id) {
+      return Fragment.byId(this.getView()?.getId() ?? "", id);
+    },
+    /** Carrega um diálogo de fragmento; o estado de UI do diálogo fica no JSONModel "compose". */loadDialog: async function _loadDialog(fragmentName, controller, state) {
+      const view = this.getView();
+      const dialog = await Fragment.load({
+        id: view?.getId(),
+        name: `apps.dflc.resenha.view.fragments.${fragmentName}`,
+        controller
+      });
+      dialog.setModel(new JSONModel(state), "compose");
+      view?.addDependent(dialog);
+      return dialog;
+    },
+    getMyId: function _getMyId() {
+      return this.getSessionModel().getProperty("/user/ID");
+    },
+    getOpenConversationId: function _getOpenConversationId() {
+      return this.getUiModel().getProperty("/conversationId");
     },
     showToast: function _showToast(key, parameters) {
       MessageToast.show(this.getText(key, parameters));

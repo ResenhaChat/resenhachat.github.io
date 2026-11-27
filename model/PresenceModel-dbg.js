@@ -8,6 +8,7 @@ sap.ui.define(["sap/ui/model/json/JSONModel"], function (JSONModel) {
     selfId = "";
     typingTimers = new Map();
     changeListeners = new Set();
+    lastSeen = new Map();
     constructor() {
       super({
         online: {},
@@ -33,10 +34,21 @@ sap.ui.define(["sap/ui/model/json/JSONModel"], function (JSONModel) {
       this.setProperty("/online", Object.fromEntries(onlineUserIds.map(id => [id, true])));
       this.emitChange();
     }
-    setUserOnline(userId, isOnline) {
+
+    /** Último "visto por último" conhecido (do evento ou de uma leitura de /People). */
+    getLastSeen(userId) {
+      return this.lastSeen.get(userId);
+    }
+    rememberLastSeen(userId, lastSeenAt) {
+      if (lastSeenAt) {
+        this.lastSeen.set(userId, lastSeenAt);
+      }
+    }
+    setUserOnline(userId, isOnline, lastSeenAt = null) {
       const online = {
         ...this.getOnline()
       };
+      this.rememberLastSeen(userId, lastSeenAt);
       if (isOnline) {
         online[userId] = true;
       } else {

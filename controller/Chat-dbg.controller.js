@@ -1,4 +1,4 @@
-sap.ui.define(["./BaseController", "sap/ui/Device", "./chat/ConversationsSection", "./chat/MessagesSection", "./chat/ComposerSection", "./chat/ProfileSection", "./chat/OnlineSection", "./chat/InstallSection", "./chat/NotificationsSection", "../util/errors"], function (__BaseController, Device, __ConversationsSection, __MessagesSection, __ComposerSection, __ProfileSection, __OnlineSection, __InstallSection, __NotificationsSection, ___util_errors) {
+sap.ui.define(["./BaseController", "sap/ui/Device", "./chat/ConversationsSection", "./chat/MessagesSection", "./chat/ComposerSection", "./chat/ProfileSection", "./chat/OnlineSection", "./chat/InstallSection", "./chat/NotificationsSection", "./chat/ConversationActionsSection", "./chat/NewChatSection", "./chat/NewConversationSection", "./chat/ExploreChannelsSection", "./chat/MembersSection", "./chat/DetailsSection", "../util/errors"], function (__BaseController, Device, __ConversationsSection, __MessagesSection, __ComposerSection, __ProfileSection, __OnlineSection, __InstallSection, __NotificationsSection, __ConversationActionsSection, __NewChatSection, __NewConversationSection, __ExploreChannelsSection, __MembersSection, __DetailsSection, ___util_errors) {
   "use strict";
 
   function _interopRequireDefault(obj) {
@@ -12,6 +12,12 @@ sap.ui.define(["./BaseController", "sap/ui/Device", "./chat/ConversationsSection
   const OnlineSection = _interopRequireDefault(__OnlineSection);
   const InstallSection = _interopRequireDefault(__InstallSection);
   const NotificationsSection = _interopRequireDefault(__NotificationsSection);
+  const ConversationActionsSection = _interopRequireDefault(__ConversationActionsSection);
+  const NewChatSection = _interopRequireDefault(__NewChatSection);
+  const NewConversationSection = _interopRequireDefault(__NewConversationSection);
+  const ExploreChannelsSection = _interopRequireDefault(__ExploreChannelsSection);
+  const MembersSection = _interopRequireDefault(__MembersSection);
+  const DetailsSection = _interopRequireDefault(__DetailsSection);
   const isUnauthorized = ___util_errors["isUnauthorized"];
   const MOBILE_LIST = "list";
   const MOBILE_CHAT = "chat";
@@ -30,6 +36,12 @@ sap.ui.define(["./BaseController", "sap/ui/Device", "./chat/ConversationsSection
       this.online = new OnlineSection(this);
       this.install = new InstallSection(this);
       this.notifications = new NotificationsSection(this);
+      this.actions = new ConversationActionsSection(this);
+      this.newChat = new NewChatSection(this);
+      this.newConversation = new NewConversationSection(this);
+      this.explore = new ExploreChannelsSection(this);
+      this.members = new MembersSection(this);
+      this.details = new DetailsSection(this);
       this.lastUnauthorizedRetry = 0;
       /** Lista de conversas carregada: atualiza o contador de não lidas (título e selo) e trata o 401. */
       this.onConversationsDataReceived = event => {
@@ -57,6 +69,7 @@ sap.ui.define(["./BaseController", "sap/ui/Device", "./chat/ConversationsSection
           return;
         }
         this.getUiModel().setProperty("/mobileView", MOBILE_LIST);
+        this.details.onClose();
         this.messages.close();
         this.conversations.syncSelection();
       };
@@ -70,6 +83,7 @@ sap.ui.define(["./BaseController", "sap/ui/Device", "./chat/ConversationsSection
         this.getUiModel().setProperty("/mobileView", MOBILE_CHAT);
         this.composer.switchTo(id);
         this.messages.open(id);
+        this.details.onConversationOpened();
         this.conversations.syncSelection();
       };
     },
@@ -92,6 +106,11 @@ sap.ui.define(["./BaseController", "sap/ui/Device", "./chat/ConversationsSection
       this.online.destroy();
       this.notifications.destroy();
       this.install.destroy();
+      this.details.destroy();
+      this.newChat.destroy();
+      this.newConversation.destroy();
+      this.explore.destroy();
+      this.members.destroy();
     },
     /** Avatar do cabeçalho lê nome e id do próprio usuário em /Me(<id>). */bindOwnAvatar: function _bindOwnAvatar() {
       const userId = this.getAuth().getUser()?.ID;

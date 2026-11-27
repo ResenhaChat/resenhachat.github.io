@@ -1,0 +1,30 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+>
+    <Dialog id="exploreDialog" title="{i18n>exploreTitle}" contentWidth="30rem" stretch="{device>/system/phone}"
+        class="rsPeopleDialog">
+        <content>
+            <List id="publicChannelList" mode="None" showSeparators="None" noDataText="{i18n>noPublicChannels}"
+                class="rsPeopleList"
+                items="{ path: '/PublicChannels', suspended: true, parameters: { $orderby: 'Name' } }">
+                <CustomListItem type="Inactive" class="rsChannelItem">
+                    <HBox class="rsChannelRow" renderType="Bare" alignItems="Center">
+                        <Avatar displaySize="M" src="sap-icon://marketing-campaign"
+                            backgroundColor="{path: 'ID', targetType: 'any', formatter: '.formatter.accent'}" />
+                        <VBox class="rsPersonBody" renderType="Bare">
+                            <Text text="{Name}" maxLines="1" class="rsPersonName" />
+                            <Text text="{Description}" maxLines="2" class="rsPersonHandle" />
+                            <Text text="{path: 'MemberCount', targetType: 'any', formatter: '.formatter.memberCountText'}" class="rsHint" />
+                        </VBox>
+                        <Button type="Transparent" class="rsGhostBtn" press=".onJoinOrOpen"
+                            text="{path: 'IsMember', targetType: 'any', formatter: '.formatter.joinLabel'}" />
+                    </HBox>
+                </CustomListItem>
+            </List>
+        </content>
+        <endButton>
+            <Button id="exploreClose" text="{i18n>closeDialog}" type="Transparent" class="rsGhostBtn" press=".onClose" />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

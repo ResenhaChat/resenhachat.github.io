@@ -39,6 +39,9 @@ sap.ui.define(["sap/ui/core/format/DateFormat"], function (DateFormat) {
   const shortDateFormat = DateFormat.getDateInstance({
     style: "short"
   });
+  const dayMonthFormat = DateFormat.getDateInstance({
+    pattern: "dd/MM"
+  });
   const formatter = {
     initials(name) {
       const parts = (name ?? "").trim().split(/\s+/).filter(Boolean);
@@ -104,6 +107,9 @@ sap.ui.define(["sap/ui/core/format/DateFormat"], function (DateFormat) {
       return !sending && !!draft?.trim();
     },
     conversationIcon(kind) {
+      if (kind === "Channel") {
+        return "sap-icon://marketing-campaign";
+      }
       return GENERAL_KINDS.includes(kind ?? "") ? "sap-icon://group" : "";
     },
     unreadBadge(count) {
@@ -138,6 +144,140 @@ sap.ui.define(["sap/ui/core/format/DateFormat"], function (DateFormat) {
     },
     isMode(current, target) {
       return String(current === target);
+    },
+    isDirect(kind) {
+      return kind === "Direct";
+    },
+    isNotDirect(kind) {
+      return kind !== "Direct";
+    },
+    isSystem(kind) {
+      return kind === "System";
+    },
+    isNotSystem(kind) {
+      return kind !== "System";
+    },
+    /** Dono ou admin: pode editar a conversa e gerenciar membros. */
+    isManager(role) {
+      return role === "Owner" || role === "Admin";
+    },
+    /** Em canal "só admins publicam", membros comuns veem o aviso no lugar do composer. */
+    canPostHere(onlyAdminsCanPost, role) {
+      return !onlyAdminsCanPost || formatter.isManager(role);
+    },
+    cannotPostHere(onlyAdminsCanPost, role) {
+      return !formatter.canPostHere(onlyAdminsCanPost, role);
+    },
+    roleLabel(role) {
+      if (role === "Owner") {
+        return getText("roleOwner");
+      }
+      return role === "Admin" ? getText("roleAdmin") : "";
+    },
+    hasRoleLabel(role) {
+      return formatter.isManager(role);
+    },
+    /** Membro pode ser removido por quem gerencia: ninguém remove o dono, admin remove só membros comuns. */
+    canRemoveMember(myRole, memberRole, isMe) {
+      if (isMe || memberRole === "Owner") {
+        return false;
+      }
+      return myRole === "Owner" || myRole === "Admin" && memberRole === "Member";
+    },
+    /** Só o dono promove e rebaixa admins. */
+    canToggleAdmin(myRole, memberRole, isMe) {
+      return !isMe && myRole === "Owner" && memberRole !== "Owner";
+    },
+    /** Nome: dono ou admin de grupo e canal (o Geral mostra só o título). */
+    canEditName(role, kind) {
+      return formatter.isManager(role) && formatter.isGroupLike(kind);
+    },
+    /** Descrição: dono ou admin em qualquer conversa que não seja Direct. */
+    canEditDescription(role, kind) {
+      return formatter.isManager(role) && kind !== "Direct";
+    },
+    /** Público e só admins publicam: dono ou admin de grupo e canal. */
+    canEditSettings(role, kind) {
+      return formatter.isManager(role) && formatter.isGroupLike(kind);
+    },
+    isChannel(kind) {
+      return kind === "Channel";
+    },
+    /** Grupo e canal têm membros; o Geral não tem lista de membros nem a ação de sair. */
+    isGroupLike(kind) {
+      return kind === "Group" || kind === "Channel";
+    },
+    /** Pessoa da lista de seleção: mostra o check quando já está escolhida. */
+    isPicked(userId, selected) {
+      return !!userId && !!selected?.some(person => person.ID === userId);
+    },
+    isDirectOnline(kind, peerId, online) {
+      return formatter.isDirect(kind) && formatter.isOnline(peerId, online);
+    },
+    /** Status de uma pessoa (perfil do Direct): online agora ou visto por último. */
+    peerStatus(userId, online, lastSeenAt) {
+      return formatter.directStatus(formatter.isOnline(userId, online), lastSeenAt);
+    },
+    /** Mostra o "⋯" do membro só se há alguma ação para mim nessa linha. */
+    canManageMember(myRole, memberRole, memberId, myId) {
+      const isMe = !!memberId && memberId === myId;
+      return formatter.canRemoveMember(myRole, memberRole, isMe) || formatter.canToggleAdmin(myRole, memberRole, isMe);
+    },
+    memberCountText(count) {
+      return count === 1 ? getText("memberCountOne") : getText("memberCount", [count ?? 0]);
+    },
+    joinLabel(isMember) {
+      return getText(isMember ? "openConversation" : "joinChannel");
+    },
+    archivedToggleLabel(showingArchived) {
+      return getText(showingArchived ? "backToChats" : "archivedChats");
+    },
+    emptyListText(showingArchived) {
+      return getText(showingArchived ? "noArchivedConversations" : "noConversations");
+    },
+    newConversationTitle(kind) {
+      return getText(kind === "Channel" ? "newChannelTitle" : "newGroupTitle");
+    },
+    pinLabel(isPinned) {
+      return getText(isPinned ? "unpinConversation" : "pinConversation");
+    },
+    archiveLabel(isArchived) {
+      return getText(isArchived ? "unarchiveConversation" : "archiveConversation");
+    },
+    isMuted(mutedUntil) {
+      const date = toDate(mutedUntil);
+      return !!date && date.getTime() > Date.now();
+    },
+    notMuted(mutedUntil) {
+      return !formatter.isMuted(mutedUntil);
+    },
+    muteLabel(mutedUntil) {
+      return getText(formatter.isMuted(mutedUntil) ? "unmuteConversation" : "muteConversation");
+    },
+    /** Hoje: "às HH:mm"; ontem: "ontem às HH:mm"; antes: "em dd/MM". */
+    lastSeenLabel(lastSeenAt) {
+      const date = toDate(lastSeenAt);
+      if (!date) {
+        return "";
+      }
+      const days = daysAgo(date);
+      if (days <= 0) {
+        return getText("lastSeenToday", [timeFormat.format(date)]);
+      }
+      return days === 1 ? getText("lastSeenYesterday", [timeFormat.format(date)]) : getText("lastSeenDate", [dayMonthFormat.format(date)]);
+    },
+    memberSummary(count, online) {
+      return getText("memberSummary", [formatter.memberCountText(count), online ?? 0]);
+    },
+    promoteLabel(role) {
+      return getText(role === "Admin" ? "demoteAdmin" : "promoteAdmin");
+    },
+    /** Linha de cabeçalho de Direct: online agora ou visto por último (vazio se não há o que mostrar). */
+    directStatus(isOnline, lastSeenAt) {
+      if (isOnline) {
+        return getText("statusOnline");
+      }
+      return formatter.lastSeenLabel(lastSeenAt);
     }
   };
   formatter.setFormatterTextProvider = setFormatterTextProvider;

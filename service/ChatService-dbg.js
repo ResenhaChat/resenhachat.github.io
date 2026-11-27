@@ -3,6 +3,9 @@ sap.ui.define(["sap/ui/model/Filter", "sap/ui/model/FilterOperator"], function (
 
   /** Campos de uma mensagem usados no aviso local (com o app aberto em segundo plano). */
 
+  /** Update group das linhas de Members (fixar, silenciar, arquivar). */
+  const MEMBERSHIP_GROUP = "membership";
+
   /** Actions OData do serviço Chat. O controller nunca monta request. */
   class ChatService {
     constructor(model) {
@@ -18,9 +21,54 @@ sap.ui.define(["sap/ui/model/Filter", "sap/ui/model/FilterOperator"], function (
       await operation.invoke();
     }
     async markAsRead(ConversationId) {
-      const operation = this.model.bindContext("/MarkAsRead(...)");
-      operation.setParameter("Conversation_ID", ConversationId);
-      await operation.invoke();
+      await this.invoke("MarkAsRead", {
+        Conversation_ID: ConversationId
+      });
+    }
+
+    /** ID da conversa direta criada ou reaproveitada. */
+    async startDirect(UserId) {
+      const conversation = await this.invokeWithResult("StartDirect", {
+        User_ID: UserId
+      });
+      return conversation.ID;
+    }
+
+    /** ID do grupo ou canal criado. */
+    async createConversation(input) {
+      const conversation = await this.invokeWithResult("CreateConversation", {
+        ...input
+      });
+      return conversation.ID;
+    }
+    async addMembers(ConversationId, UserIds) {
+      await this.invoke("AddMembers", {
+        Conversation_ID: ConversationId,
+        UserIds
+      });
+    }
+    async removeMember(ConversationId, UserId) {
+      await this.invoke("RemoveMember", {
+        Conversation_ID: ConversationId,
+        User_ID: UserId
+      });
+    }
+    async setMemberRole(ConversationId, UserId, Role) {
+      await this.invoke("SetMemberRole", {
+        Conversation_ID: ConversationId,
+        User_ID: UserId,
+        Role
+      });
+    }
+    async leaveConversation(ConversationId) {
+      await this.invoke("LeaveConversation", {
+        Conversation_ID: ConversationId
+      });
+    }
+    async joinChannel(ConversationId) {
+      await this.invoke("JoinChannel", {
+        Conversation_ID: ConversationId
+      });
     }
 
     /** Mensagem com remetente e conversa para montar o aviso local; undefined se não puder ser lida. */
@@ -53,6 +101,34 @@ sap.ui.define(["sap/ui/model/Filter", "sap/ui/model/FilterOperator"], function (
       }
     }
 
+    /**
+     * Minha linha em Members da conversa, editável no update group "membership".
+     * O chamador destrói o binding (context.getBinding().destroy()) ao terminar.
+     */
+    async findMyMembership(conversationId, userId) {
+      const binding = this.model.bindList("/Members", undefined, undefined, [new Filter({
+        path: "Conversation_ID",
+        operator: FilterOperator.EQ,
+        value1: conversationId
+      }), new Filter({
+        path: "User_ID",
+        operator: FilterOperator.EQ,
+        value1: userId
+      })], {
+        $$updateGroupId: MEMBERSHIP_GROUP
+      });
+      try {
+        const [context] = await binding.requestContexts(0, 1);
+        if (!context) {
+          binding.destroy();
+        }
+        return context;
+      } catch (error) {
+        binding.destroy();
+        throw error;
+      }
+    }
+
     /** Preferências de notificação do usuário (MySettings) para decidir o aviso local. */
     async findMySettings(userId) {
       const binding = this.model.bindContext(`/MySettings(User_ID=${userId})`, undefined, {
@@ -81,7 +157,29 @@ sap.ui.define(["sap/ui/model/Filter", "sap/ui/model/FilterOperator"], function (
         binding.destroy();
       }
     }
+    async invoke(action, parameters) {
+      const operation = this.model.bindContext(`/${action}(...)`);
+      Object.entries(parameters).forEach(([name, value]) => operation.setParameter(name, value));
+      try {
+        await operation.invoke();
+      } finally {
+        operation.destroy();
+      }
+    }
+
+    /** Action que devolve uma entidade: lê o resultado pelo contexto de retorno (getBoundContext) após o invoke. */
+    async invokeWithResult(action, parameters) {
+      const operation = this.model.bindContext(`/${action}(...)`);
+      Object.entries(parameters).forEach(([name, value]) => operation.setParameter(name, value));
+      try {
+        await operation.invoke();
+        return await operation.getBoundContext().requestObject();
+      } finally {
+        operation.destroy();
+      }
+    }
   }
+  ChatService.MEMBERSHIP_GROUP = MEMBERSHIP_GROUP;
   return ChatService;
 });
 //# sourceMappingURL=ChatService-dbg.js.map

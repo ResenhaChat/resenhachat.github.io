@@ -9,8 +9,8 @@
                 <VBox class="rsProfileHero" renderType="Bare">
                     <VBox class="rsRing rsProfileRing" renderType="Bare">
                         <Avatar displaySize="XL" class="rsProfileAvatar"
-                            initials="{path: 'DisplayName', formatter: '.formatter.initials'}"
-                            backgroundColor="{path: 'ID', formatter: '.formatter.accent'}" />
+                            initials="{path: 'DisplayName', targetType: 'any', formatter: '.formatter.initials'}"
+                            backgroundColor="{path: 'ID', targetType: 'any', formatter: '.formatter.accent'}" />
                     </VBox>
                     <Title text="{DisplayName}" titleStyle="H3" class="rsProfileName" />
                     <Text text="@{Username}" class="rsProfileHandle" />

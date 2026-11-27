@@ -1,0 +1,35 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+>
+    <Dialog id="newDirectDialog" title="{i18n>newDirectTitle}" contentWidth="26rem"
+        stretch="{device>/system/phone}" class="rsPeopleDialog">
+        <content>
+            <VBox class="rsPeopleBody" renderType="Bare">
+                <SearchField id="newDirectSearch" placeholder="{i18n>peopleSearchPlaceholder}" value="{compose>/term}"
+                    liveChange=".onSearch" class="rsPeopleSearch" />
+                <List id="newDirectList" mode="None" showSeparators="None" noDataText="{i18n>noPeople}" class="rsPeopleList"
+                    growing="true" growingThreshold="30"
+                    items="{ path: '/People', suspended: true, parameters: { $orderby: 'DisplayName' } }">
+                    <CustomListItem type="Active" class="rsPersonItem" press=".onPick">
+                        <HBox class="rsPersonRow" renderType="Bare" alignItems="Center">
+                            <HBox class="rsAvatarWrap" renderType="Bare">
+                                <Avatar displaySize="S" initials="{path: 'DisplayName', targetType: 'any', formatter: '.formatter.initials'}"
+                                    backgroundColor="{path: 'ID', targetType: 'any', formatter: '.formatter.accent'}" />
+                                <Text class="rsOnlineDot"
+                                    visible="{parts: [{path: 'ID', targetType: 'any'}, {path: 'presence>/online'}], formatter: '.formatter.isOnline'}" />
+                            </HBox>
+                            <VBox class="rsPersonBody" renderType="Bare">
+                                <Text text="{DisplayName}" maxLines="1" class="rsPersonName" />
+                                <Text text="@{Username}" maxLines="1" class="rsPersonHandle" />
+                            </VBox>
+                        </HBox>
+                    </CustomListItem>
+                </List>
+            </VBox>
+        </content>
+        <endButton>
+            <Button id="newDirectCancel" text="{i18n>cancel}" type="Transparent" class="rsGhostBtn" press=".onClose" />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

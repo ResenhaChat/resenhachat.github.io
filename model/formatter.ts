@@ -45,6 +45,7 @@ function accentNumber(id: string | null | undefined): number {
 const timeFormat = DateFormat.getTimeInstance({ pattern: "HH:mm" });
 const dateFormat = DateFormat.getDateInstance({ style: "medium" });
 const shortDateFormat = DateFormat.getDateInstance({ style: "short" });
+const dayMonthFormat = DateFormat.getDateInstance({ pattern: "dd/MM" });
 
 const formatter = {
 
@@ -137,6 +138,10 @@ const formatter = {
     },
 
     conversationIcon(kind: string | null | undefined): string {
+        if (kind === "Channel") {
+            return "sap-icon://marketing-campaign";
+        }
+
         return GENERAL_KINDS.includes(kind ?? "") ? "sap-icon://group" : "";
     },
 
@@ -181,6 +186,185 @@ const formatter = {
 
     isMode(current: string | undefined, target: string): string {
         return String(current === target);
+    },
+
+    isDirect(kind: string | null | undefined): boolean {
+        return kind === "Direct";
+    },
+
+    isNotDirect(kind: string | null | undefined): boolean {
+        return kind !== "Direct";
+    },
+
+    isSystem(kind: string | null | undefined): boolean {
+        return kind === "System";
+    },
+
+    isNotSystem(kind: string | null | undefined): boolean {
+        return kind !== "System";
+    },
+
+    /** Dono ou admin: pode editar a conversa e gerenciar membros. */
+    isManager(role: string | null | undefined): boolean {
+        return role === "Owner" || role === "Admin";
+    },
+
+    /** Em canal "só admins publicam", membros comuns veem o aviso no lugar do composer. */
+    canPostHere(onlyAdminsCanPost: boolean | null | undefined, role: string | null | undefined): boolean {
+        return !onlyAdminsCanPost || formatter.isManager(role);
+    },
+
+    cannotPostHere(onlyAdminsCanPost: boolean | null | undefined, role: string | null | undefined): boolean {
+        return !formatter.canPostHere(onlyAdminsCanPost, role);
+    },
+
+    roleLabel(role: string | null | undefined): string {
+        if (role === "Owner") {
+            return getText("roleOwner");
+        }
+
+        return role === "Admin" ? getText("roleAdmin") : "";
+    },
+
+    hasRoleLabel(role: string | null | undefined): boolean {
+        return formatter.isManager(role);
+    },
+
+    /** Membro pode ser removido por quem gerencia: ninguém remove o dono, admin remove só membros comuns. */
+    canRemoveMember(myRole: string | null | undefined, memberRole: string | null | undefined, isMe: boolean): boolean {
+        if (isMe || memberRole === "Owner") {
+            return false;
+        }
+
+        return myRole === "Owner" || (myRole === "Admin" && memberRole === "Member");
+    },
+
+    /** Só o dono promove e rebaixa admins. */
+    canToggleAdmin(myRole: string | null | undefined, memberRole: string | null | undefined, isMe: boolean): boolean {
+        return !isMe && myRole === "Owner" && memberRole !== "Owner";
+    },
+
+    /** Nome: dono ou admin de grupo e canal (o Geral mostra só o título). */
+    canEditName(role: string | null | undefined, kind: string | null | undefined): boolean {
+        return formatter.isManager(role) && formatter.isGroupLike(kind);
+    },
+
+    /** Descrição: dono ou admin em qualquer conversa que não seja Direct. */
+    canEditDescription(role: string | null | undefined, kind: string | null | undefined): boolean {
+        return formatter.isManager(role) && kind !== "Direct";
+    },
+
+    /** Público e só admins publicam: dono ou admin de grupo e canal. */
+    canEditSettings(role: string | null | undefined, kind: string | null | undefined): boolean {
+        return formatter.isManager(role) && formatter.isGroupLike(kind);
+    },
+
+    isChannel(kind: string | null | undefined): boolean {
+        return kind === "Channel";
+    },
+
+    /** Grupo e canal têm membros; o Geral não tem lista de membros nem a ação de sair. */
+    isGroupLike(kind: string | null | undefined): boolean {
+        return kind === "Group" || kind === "Channel";
+    },
+
+    /** Pessoa da lista de seleção: mostra o check quando já está escolhida. */
+    isPicked(userId: string | null | undefined, selected: { ID: string }[] | undefined): boolean {
+        return !!userId && !!selected?.some((person) => person.ID === userId);
+    },
+
+    isDirectOnline(kind: string | null | undefined, peerId: string | null | undefined, online: Record<string, boolean> | undefined): boolean {
+        return formatter.isDirect(kind) && formatter.isOnline(peerId, online);
+    },
+
+    /** Status de uma pessoa (perfil do Direct): online agora ou visto por último. */
+    peerStatus(userId: string | null | undefined, online: Record<string, boolean> | undefined, lastSeenAt: DateLike): string {
+        return formatter.directStatus(formatter.isOnline(userId, online), lastSeenAt);
+    },
+
+    /** Mostra o "⋯" do membro só se há alguma ação para mim nessa linha. */
+    canManageMember(myRole: string | null | undefined, memberRole: string | null | undefined, memberId: string | null | undefined, myId: string | null | undefined): boolean {
+        const isMe = !!memberId && memberId === myId;
+
+        return formatter.canRemoveMember(myRole, memberRole, isMe) || formatter.canToggleAdmin(myRole, memberRole, isMe);
+    },
+
+    memberCountText(count: number | null | undefined): string {
+        return count === 1 ? getText("memberCountOne") : getText("memberCount", [count ?? 0]);
+    },
+
+    joinLabel(isMember: boolean | null | undefined): string {
+        return getText(isMember ? "openConversation" : "joinChannel");
+    },
+
+    archivedToggleLabel(showingArchived: boolean | null | undefined): string {
+        return getText(showingArchived ? "backToChats" : "archivedChats");
+    },
+
+    emptyListText(showingArchived: boolean | null | undefined): string {
+        return getText(showingArchived ? "noArchivedConversations" : "noConversations");
+    },
+
+    newConversationTitle(kind: string | null | undefined): string {
+        return getText(kind === "Channel" ? "newChannelTitle" : "newGroupTitle");
+    },
+
+    pinLabel(isPinned: boolean | null | undefined): string {
+        return getText(isPinned ? "unpinConversation" : "pinConversation");
+    },
+
+    archiveLabel(isArchived: boolean | null | undefined): string {
+        return getText(isArchived ? "unarchiveConversation" : "archiveConversation");
+    },
+
+    isMuted(mutedUntil: DateLike): boolean {
+        const date = toDate(mutedUntil);
+
+        return !!date && date.getTime() > Date.now();
+    },
+
+    notMuted(mutedUntil: DateLike): boolean {
+        return !formatter.isMuted(mutedUntil);
+    },
+
+    muteLabel(mutedUntil: DateLike): string {
+        return getText(formatter.isMuted(mutedUntil) ? "unmuteConversation" : "muteConversation");
+    },
+
+    /** Hoje: "às HH:mm"; ontem: "ontem às HH:mm"; antes: "em dd/MM". */
+    lastSeenLabel(lastSeenAt: DateLike): string {
+        const date = toDate(lastSeenAt);
+
+        if (!date) {
+            return "";
+        }
+
+        const days = daysAgo(date);
+
+        if (days <= 0) {
+            return getText("lastSeenToday", [timeFormat.format(date)]);
+        }
+
+        return days === 1
+            ? getText("lastSeenYesterday", [timeFormat.format(date)])
+            : getText("lastSeenDate", [dayMonthFormat.format(date)]);
+    },
+
+    memberSummary(count: number | null | undefined, online: number | null | undefined): string {
+        return getText("memberSummary", [formatter.memberCountText(count), online ?? 0]);
+    },
+
+    promoteLabel(role: string | null | undefined): string {
+        return getText(role === "Admin" ? "demoteAdmin" : "promoteAdmin");
+    },
+
+    /** Linha de cabeçalho de Direct: online agora ou visto por último (vazio se não há o que mostrar). */
+    directStatus(isOnline: boolean, lastSeenAt: DateLike): string {
+        if (isOnline) {
+            return getText("statusOnline");
+        }
+
+        return formatter.lastSeenLabel(lastSeenAt);
     }
 
 };
